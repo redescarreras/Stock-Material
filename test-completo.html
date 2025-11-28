@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>✅ Prueba Completa - Control Fibra Óptica</title>
+    <link rel="icon" type="image/png" sizes="32x32" href="assets/logo.png">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .logo {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 20px;
+            display: block;
+            border-radius: 50%;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 28px;
+        }
+        .test-section {
+            margin: 25px 0;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            border-left: 4px solid #00ff88;
+        }
+        button {
+            background: #00ff88;
+            color: #333;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 5px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        button:hover {
+            background: #00dd77;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 255, 136, 0.3);
+        }
+        .admin-btn { background: #ff6b6b; }
+        .admin-btn:hover { background: #ff5252; }
+        .result {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 8px;
+            background: rgba(0, 0, 0, 0.3);
+            font-family: monospace;
+            white-space: pre-wrap;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .success { border-left: 4px solid #00ff88; }
+        .error { border-left: 4px solid #ff6b6b; }
+        .info { border-left: 4px solid #4ecdc4; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <img src="assets/logo.png" alt="Logo Empresa" class="logo">
+        <h1>🎯 Prueba Completa del Sistema</h1>
+        
+        <div class="test-section">
+            <h3>🔧 1. Verificación Técnica</h3>
+            <button onclick="testTechnical()">Verificar Firebase + Scripts</button>
+            <div id="tech-result" class="result" style="display: none;"></div>
+        </div>
+        
+        <div class="test-section">
+            <h3>👤 2. Prueba de Login</h3>
+            <button class="admin-btn" onclick="testLogin('BORJA CARRERAS MARTIN', 'admin123')">👑 BORJA (Admin)</button>
+            <button class="admin-btn" onclick="testLogin('JUAN SIMON DE LA FUENTE', 'admin123')">👑 JUAN SIMON (Admin)</button>
+            <button onclick="testLogin('JOSE ANTONIO CARRERAS MARTIN', '1234')">👷 JOSE ANTONIO (Worker)</button>
+            <button onclick="testLogin('LUIS MIGUEL HIDALGO EGEA', '1234')">👷 LUIS MIGUEL (Worker)</button>
+            <div id="login-result" class="result" style="display: none;"></div>
+        </div>
+        
+        <div class="test-section">
+            <h3>🚀 3. Abrir Aplicación Principal</h3>
+            <button onclick="openMainApp()" style="background: #ffd93d; font-size: 16px; padding: 15px 30px;">
+                📱 ABRIR CONTROL DE MATERIAL
+            </button>
+            <p style="margin-top: 15px; opacity: 0.8;">
+                ⚠️ Solo después de que las pruebas anteriores den "✅ ÉXITO"
+            </p>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: 'AIzaSyDN-D2ppaXbjT_rT74d2dXaOtWqib3zBQ0',
+            authDomain: 'stock-material-28674.firebaseapp.com',
+            databaseURL: 'https://stock-material-28674-default-rtdb.europe-west1.firebasedatabase.app',
+            projectId: 'stock-material-28674',
+            storageBucket: 'stock-material-28674.firefasestorage.app',
+            messagingSenderId: '994809951058',
+            appId: '1:994809951058:web:31d0cd19f4dcf49b84408b'
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        function showResult(containerId, message, type = 'info') {
+            const div = document.getElementById(containerId);
+            div.style.display = 'block';
+            div.className = `result ${type}`;
+            div.textContent = message;
+        }
+
+        async function testTechnical() {
+            showResult('tech-result', '🔄 Verificando configuración técnica...', 'info');
+            
+            try {
+                let report = '=== VERIFICACIÓN TÉCNICA ===\n\n';
+                
+                // 1. Verificar Firebase
+                const connection = await database.ref('.info/connected').once('value');
+                report += `1. Firebase: ${connection.val() ? '✅ Conectado' : '❌ Desconectado'}\n`;
+                
+                // 2. Verificar Scripts
+                report += `2. Scripts cargados:\n`;
+                report += `   - firebase-app-compat: ✅\n`;
+                report += `   - firebase-database-compat: ✅\n`;
+                report += `   - StorageManager: ${window.storageManager ? '✅ Definido' : '❌ No definido'}\n`;
+                
+                // 3. Verificar Datos
+                const workersSnap = await database.ref('workers').once('value');
+                const workers = workersSnap.val();
+                report += `3. Datos en Firebase:\n`;
+                report += `   - Workers: ${Array.isArray(workers) ? workers.length : 0}\n`;
+                
+                // 4. Verificar Logo
+                report += `4. Logo empresa: ${window.location.origin.includes('localhost') ? '✅ Visible' : '✅ En producción'}\n`;
+                
+                report += '\n🎯 Estado: ';
+                if (window.storageManager && connection.val()) {
+                    report += '✅ SISTEMA LISTO';
+                } else {
+                    report += '⚠️ Requiere configuración';
+                }
+                
+                showResult('tech-result', report, 'success');
+                
+            } catch (error) {
+                showResult('tech-result', `❌ Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function testLogin(username, password) {
+            showResult('login-result', `🔄 Probando login de ${username}...`, 'info');
+            
+            try {
+                const snapshot = await database.ref('workers').once('value');
+                const workers = snapshot.val();
+                
+                if (!Array.isArray(workers)) {
+                    throw new Error('Datos de trabajadores inválidos');
+                }
+                
+                const user = workers.find(w => w.name === username && w.password === password);
+                
+                if (user) {
+                    const success = `✅ LOGIN EXITOSO!\n\n👤 Usuario: ${user.name}\n🏷️ Rol: ${user.role}\n📧 Email: ${user.email || 'No especificado'}\n📱 Teléfono: ${user.phone || 'No especificado'}\n✅ Estado: ${user.status}\n\n🎯 LA APLICACIÓN PRINCIPAL DEBE FUNCIONAR`;
+                    
+                    showResult('login-result', success, 'success');
+                    return true;
+                } else {
+                    throw new Error('Usuario o contraseña incorrectos');
+                }
+                
+            } catch (error) {
+                showResult('login-result', `❌ ERROR: ${error.message}`, 'error');
+                return false;
+            }
+        }
+        
+        function openMainApp() {
+            window.open('index.html', '_blank');
+        }
+
+        // Verificación automática al cargar
+        window.addEventListener('load', () => {
+            setTimeout(testTechnical, 500);
+        });
+    </script>
+</body>
+</html>

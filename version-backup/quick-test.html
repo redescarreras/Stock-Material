@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prueba Rápida - Control Fibra Óptica</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .test-result {
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+            border-left: 4px solid #ccc;
+        }
+        .success { border-left-color: #28a745; background: #d4edda; }
+        .error { border-left-color: #dc3545; background: #f8d7da; }
+        .warning { border-left-color: #ffc107; background: #fff3cd; }
+        .users-list {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+        .user {
+            padding: 8px;
+            border-bottom: 1px solid #dee2e6;
+            display: flex;
+            justify-content: space-between;
+        }
+        .user:last-child { border-bottom: none; }
+        .admin { color: #dc3545; font-weight: bold; }
+        .worker { color: #28a745; }
+        button {
+            background: #0066FF;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px 5px;
+        }
+        button:hover { background: #0052cc; }
+        .btn-success { background: #28a745; }
+        .btn-warning { background: #ffc107; color: #000; }
+        .btn-danger { background: #dc3545; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 style="text-align: center; color: #0066FF;">🧪 Prueba Rápida de Configuración</h1>
+        
+        <div id="results"></div>
+        
+        <div style="text-align: center; margin-top: 30px;">
+            <button onclick="runTests()" class="btn-success">🚀 Ejecutar Pruebas</button>
+            <button onclick="setupFirebase()" class="btn-warning">⚙️ Configurar Firebase</button>
+            <button onclick="window.location.href='index.html'" class="btn-success">📱 Abrir Aplicación</button>
+        </div>
+
+        <div style="margin-top: 30px; padding: 20px; background: #e7f3ff; border-radius: 5px;">
+            <h4>📋 Pasos para verificar que todo funciona:</h4>
+            <ol>
+                <li><strong>Ejecutar Pruebas:</strong> Verifica la conexión con Firebase</li>
+                <li><strong>Configurar Firebase:</strong> Solo si las pruebas fallan (inicializa usuarios)</li>
+                <li><strong>Abrir Aplicación:</strong> Usa cualquiera de estos usuarios:
+                    <ul>
+                        <li><strong>Admin:</strong> BORJA CARRERAS MARTIN (admin123)</li>
+                        <li><strong>Trabajador:</strong> JOSE ANTONIO CARRERAS MARTIN (1234)</li>
+                    </ul>
+                </li>
+            </ol>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    
+    <script>
+        const firebaseConfig = {
+            apiKey: 'AIzaSyDN-D2ppaXbjT_rT74d2dXaOtWqib3zBQ0',
+            authDomain: 'stock-material-28674.firebaseapp.com',
+            databaseURL: 'https://stock-material-28674-default-rtdb.europe-west1.firebasedatabase.app',
+            projectId: 'stock-material-28674',
+            storageBucket: 'stock-material-28674.firebasestorage.app',
+            messagingSenderId: '994809951058',
+            appId: '1:994809951058:web:31d0cd19f4dcf49b84408b'
+        };
+
+        let firebaseApp, database;
+
+        function addResult(message, type = 'info') {
+            const resultsDiv = document.getElementById('results');
+            const resultDiv = document.createElement('div');
+            resultDiv.className = `test-result ${type}`;
+            resultDiv.innerHTML = message;
+            resultsDiv.appendChild(resultDiv);
+        }
+
+        function clearResults() {
+            document.getElementById('results').innerHTML = '';
+        }
+
+        async function runTests() {
+            clearResults();
+            addResult('🔄 Iniciando pruebas de configuración...', 'warning');
+
+            try {
+                // Test 1: Inicializar Firebase
+                addResult('📡 Probando inicialización de Firebase...', 'warning');
+                firebaseApp = firebase.initializeApp(firebaseConfig);
+                database = firebase.database();
+                addResult('✅ Firebase inicializado correctamente', 'success');
+
+                // Test 2: Conectar a base de datos
+                addResult('🔗 Probando conexión a base de datos...', 'warning');
+                const snapshot = await database.ref('/').once('value');
+                addResult('✅ Conexión a Firebase exitosa', 'success');
+
+                // Test 3: Verificar usuarios
+                addResult('👥 Verificando usuarios en base de datos...', 'warning');
+                const workersSnapshot = await database.ref('workers').once('value');
+                const workers = workersSnapshot.val() || [];
+                
+                if (workers.length === 0) {
+                    addResult('⚠️ No hay usuarios configurados. Necesitas ejecutar "Configurar Firebase"', 'error');
+                    return;
+                }
+
+                addResult(`✅ Encontrados ${workers.length} usuarios`, 'success');
+
+                // Mostrar usuarios
+                let usersHtml = '<div class="users-list"><h4>👥 Usuarios disponibles:</h4>';
+                workers.forEach(user => {
+                    const roleClass = user.role === 'administrador' ? 'admin' : 'worker';
+                    const roleText = user.role === 'administrador' ? 'Admin' : 'Trabajador';
+                    usersHtml += `
+                        <div class="user">
+                            <span class="${roleClass}">${user.name} (${roleText})</span>
+                            <span>Pass: ${user.password}</span>
+                        </div>
+                    `;
+                });
+                usersHtml += '</div>';
+                addResult(usersHtml, 'success');
+
+                // Test 4: Verificar materiales
+                addResult('📦 Verificando materiales...', 'warning');
+                const materialsSnapshot = await database.ref('materials').once('value');
+                const materials = materialsSnapshot.val() || [];
+                addResult(`✅ Encontrados ${materials.length} materiales`, 'success');
+
+                // Test 5: Verificar configuraciones
+                addResult('⚙️ Verificando configuración...', 'warning');
+                const settingsSnapshot = await database.ref('settings').once('value');
+                const settings = settingsSnapshot.val() || {};
+                addResult('✅ Configuración cargada', 'success');
+
+                addResult('🎉 ¡Todas las pruebas pasaron! La aplicación está lista para usar.', 'success');
+
+            } catch (error) {
+                console.error('Error en pruebas:', error);
+                addResult(`❌ Error: ${error.message}`, 'error');
+                addResult('💡 Solución: Ejecuta "Configurar Firebase" para inicializar los datos', 'warning');
+            }
+        }
+
+        async function setupFirebase() {
+            clearResults();
+            addResult('⚙️ Configurando Firebase con datos originales...', 'warning');
+
+            try {
+                if (!firebaseApp) {
+                    firebaseApp = firebase.initializeApp(firebaseConfig);
+                    database = firebase.database();
+                }
+
+                // Usuarios por defecto (exactos de la app original)
+                const defaultWorkers = [
+                    { id: 'ADMIN001', code: 'ADMIN001', name: 'BORJA CARRERAS MARTIN', email: 'borja@empresa.com', phone: '123456789', role: 'administrador', status: 'activo', registrationDate: '2024-01-01', notes: 'Administrador del sistema', password: 'admin123' },
+                    { id: 'ADMIN002', code: 'ADMIN002', name: 'JUAN SIMON DE LA FUENTE', email: 'juansimon@empresa.com', phone: '987654321', role: 'administrador', status: 'activo', registrationDate: '2024-01-01', notes: 'Administrador del sistema', password: 'admin123' },
+                    { id: 'ADMIN003', code: 'ADMIN003', name: 'ALEXANDER ARROYAVE', email: 'alexander@empresa.com', phone: '987654322', role: 'administrador', status: 'activo', registrationDate: '2024-01-01', notes: 'Administrador del sistema', password: 'admin123' },
+                    { id: 'TRAB001', code: 'TRAB001', name: 'JOSE ANTONIO CARRERAS MARTIN', email: 'jantonio@empresa.com', phone: '555123456', role: 'trabajador', status: 'activo', registrationDate: '2024-01-15', notes: 'Trabajador de campo', password: '1234' },
+                    { id: 'TRAB002', code: 'TRAB002', name: 'LUIS MIGUEL HIDALGO EGEA', email: 'lmiguel@empresa.com', phone: '555789012', role: 'trabajador', status: 'activo', registrationDate: '2024-01-15', notes: 'Trabajador de campo', password: '1234' },
+                    { id: 'TRAB003', code: 'TRAB003', name: 'DAVID MORENO GÓMEZ', email: 'dmoreno@empresa.com', phone: '555345678', role: 'trabajador', status: 'activo', registrationDate: '2024-01-20', notes: 'Trabajador de campo', password: '1234' },
+                    { id: 'TRAB004', code: 'TRAB004', name: 'AARON LOPEZ MUÑOZ', email: 'alopez@empresa.com', phone: '555456789', role: 'trabajador', status: 'activo', registrationDate: '2024-01-22', notes: 'Trabajador de campo', password: '1234' },
+                    { id: 'TRAB005', code: 'TRAB005', name: 'EDGAR ALONSO SANCHEZ SUAREZ', email: 'ealonso@empresa.com', phone: '555567890', role: 'trabajador', status: 'activo', registrationDate: '2024-01-25', notes: 'Trabajador de campo', password: '1234' },
+                    { id: 'TRAB006', code: 'TRAB006', name: 'JAVIER CARRERAS MARTIN', email: 'jcarreras@empresa.com', phone: '555678901', role: 'trabajador', status: 'activo', registrationDate: '2024-01-28', notes: 'Trabajador de campo', password: '1234' },
+                    { id: 'TRAB007', code: 'TRAB007', name: 'JUAN PEDRO SUAREZ DELGADO', email: 'jpsuarez@empresa.com', phone: '555789012', role: 'trabajador', status: 'activo', registrationDate: '2024-02-01', notes: 'Trabajador de campo', password: '1234' },
+                    { id: 'TRAB008', code: 'TRAB008', name: 'JOSE FERNANDO SANCHEZ MARULANDA', email: 'jfsanchez@empresa.com', phone: '555890123', role: 'trabajador', status: 'activo', registrationDate: '2024-02-05', notes: 'Trabajador de campo', password: '1234' },
+                    { id: 'TRAB009', code: 'TRAB009', name: 'ANTONIO MANUEL LOPEZ GARCÍA', email: 'amlopez@empresa.com', phone: '555901234', role: 'trabajador', status: 'activo', registrationDate: '2024-02-08', notes: 'Trabajador de campo', password: '1234' }
+                ];
+
+                const defaultSettings = {
+                    companyName: 'Empresa de Fibra Óptica',
+                    lowStockThreshold: 20,
+                    dateFormat: 'DD/MM/YYYY',
+                    language: 'es',
+                    notifications: { lowStock: true, newMovements: false, systemUpdates: true },
+                    backup: { autoBackup: true, backupInterval: 24, lastBackup: null }
+                };
+
+                // Escribir datos
+                await database.ref('workers').set(defaultWorkers);
+                await database.ref('settings').set(defaultSettings);
+                await database.ref('movements').set([]);
+                await database.ref('currentSession').set(null);
+
+                addResult('✅ Firebase configurado con usuarios originales', 'success');
+                addResult('👥 12 usuarios creados (3 administradores + 9 trabajadores)', 'success');
+                addResult('🎉 ¡Configuración completada! Ahora puedes usar la aplicación', 'success');
+
+            } catch (error) {
+                console.error('Error configurando:', error);
+                addResult(`❌ Error: ${error.message}`, 'error');
+            }
+        }
+
+        // Auto-ejecutar pruebas al cargar
+        window.onload = function() {
+            setTimeout(() => {
+                addResult('🔄 Auto-ejecutando pruebas...', 'warning');
+                runTests();
+            }, 1000);
+        };
+    </script>
+</body>
+</html>

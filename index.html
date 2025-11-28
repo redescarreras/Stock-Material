@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Control de Material - Fibra Óptica Online</title>
+    
+    <!-- Favicon con logo de empresa -->
+    <link rel="icon" type="image/png" sizes="32x32" href="assets/logo.png">
+    <link rel="shortcut icon" type="image/png" href="assets/logo.png">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Pantalla de carga -->
+    <div id="loading-screen" class="loading-screen">
+        <div class="loading-content">
+            <img src="assets/logo.png" alt="Logo" class="loading-logo">
+            <h2>Cargando aplicación online...</h2>
+            <div class="loading-bar">
+                <div class="loading-progress"></div>
+            </div>
+            <p class="loading-text">Sincronizando con Firebase...</p>
+        </div>
+    </div>
+
+    <!-- Contenedor principal -->
+    <div id="app" style="display: none;">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <img src="assets/logo.png" alt="Logo" class="logo">
+                <h2>Control Fibra Óptica</h2>
+                <div class="connection-status">
+                    <span class="status-indicator online" id="status-indicator">●</span>
+                    <span class="status-text" id="status-text">Online</span>
+                </div>
+            </div>
+            
+            <div class="user-info">
+                <div class="user-avatar" id="user-avatar">👤</div>
+                <div class="user-details">
+                    <div class="user-name" id="user-name">Usuario <button class="logout-btn" id="logout-btn" title="Cerrar Sesión">🚪</button></div>
+                    <div class="user-role" id="user-role">Trabajador</div>
+                </div>
+            </div>
+            
+            <nav class="sidebar-menu">
+                <a href="#dashboard" class="menu-item active" data-section="dashboard">
+                    📊 Dashboard
+                </a>
+                <a href="#movimientos" class="menu-item" data-section="movimientos">
+                    📋 Movimientos
+                </a>
+                <a href="#reportes" class="menu-item admin-only" data-section="reportes" style="display: none;">
+                    📈 Reportes
+                </a>
+                <a href="#materiales" class="menu-item" data-section="materiales">
+                    📦 Materiales
+                </a>
+                <a href="#configuracion" class="menu-item admin-only" data-section="configuracion" style="display: none;">
+                    ⚙️ Configuración
+                </a>
+                <a href="#usuarios" class="menu-item admin-only" data-section="usuarios" style="display: none;">
+                    👥 Usuarios
+                </a>
+                <a href="#" class="menu-item logout-menu-item" id="sidebar-logout-btn">
+                    🚪 Cerrar Sesión
+                </a>
+            </nav>
+        </div>
+
+        <!-- Contenido principal -->
+        <div class="main-content">
+            <!-- Dashboard -->
+            <section id="dashboard" class="section active">
+                <div class="section-header">
+                    <h1>📊 Dashboard</h1>
+                    <div class="date-time" id="current-datetime"></div>
+                </div>
+                
+                <div class="dashboard-cards">
+                    <div class="dashboard-card">
+                        <div class="card-icon">📦</div>
+                        <div class="card-content">
+                            <h3 id="total-materials">0</h3>
+                            <p>Materiales Totales</p>
+                        </div>
+                    </div>
+                    
+                    <div class="dashboard-card">
+                        <div class="card-icon">📋</div>
+                        <div class="card-content">
+                            <h3 id="total-movements">0</h3>
+                            <p>Movimientos Hoy</p>
+                        </div>
+                    </div>
+                    
+                    <div class="dashboard-card">
+                        <div class="card-icon">⚠️</div>
+                        <div class="card-content">
+                            <h3 id="low-stock">0</h3>
+                            <p>Stock Bajo</p>
+                        </div>
+                    </div>
+                    
+                    <div class="dashboard-card admin-only">
+                        <div class="card-icon">👥</div>
+                        <div class="card-content">
+                            <h3 id="active-workers">0</h3>
+                            <p>Trabajadores Activos</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Movimientos -->
+            <section id="movimientos" class="section">
+                <div class="section-header">
+                    <h1>📋 Registro de Movimientos</h1>
+                    <button class="btn btn-primary" id="new-movement-btn">➕ Nuevo Movimiento</button>
+                </div>
+                
+                <div class="search-bar">
+                    <input type="text" id="movement-search" placeholder="🔍 Buscar movimientos...">
+                    <select id="movement-filter">
+                        <option value="">Todos los tipos</option>
+                        <option value="entrada">Entrada</option>
+                        <option value="salida">Salida</option>
+                        <option value="ajuste">Ajuste</option>
+                    </select>
+                </div>
+                
+                <div class="table-container">
+                    <table id="movements-table">
+                        <thead>
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Material</th>
+                                <th>Tipo</th>
+                                <th>Cantidad</th>
+                                <th>Usuario</th>
+                                <th>Observaciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="movements-tbody">
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Reportes -->
+            <section id="reportes" class="section">
+                <div class="section-header">
+                    <h1>📈 Reportes</h1>
+                    <div class="report-controls">
+                        <select id="report-type">
+                            <option value="movements">Reporte de Movimientos</option>
+                            <option value="materials">Estado de Materiales</option>
+                            <option value="workers">Rendimiento de Trabajadores</option>
+                        </select>
+                        <input type="date" id="report-start-date">
+                        <input type="date" id="report-end-date">
+                        <button class="btn btn-primary" id="generate-report-btn">📊 Generar Reporte</button>
+                    </div>
+                </div>
+                
+                <div class="report-content" id="report-content">
+                    <div class="report-placeholder">
+                        <p>Selecciona las opciones de reporte y haz clic en "Generar Reporte"</p>
+                    </div>
+                </div>
+                
+                <div class="report-actions" id="report-actions" style="display: none;">
+                    <button class="btn btn-primary" id="print-report-btn">🖨️ Imprimir / Guardar como PDF</button>
+                    <button class="btn btn-secondary" id="download-pdf-btn">📄 Descargar PDF</button>
+                </div>
+            </section>
+
+            <!-- Materiales -->
+            <section id="materiales" class="section">
+                <div class="section-header">
+                    <h1>📦 Gestión de Materiales</h1>
+                    <div class="section-actions">
+                        <button class="btn btn-secondary" id="export-materials-pdf-btn">📄 Descargar PDF</button>
+                        <!-- NUEVA FUNCIONALIDAD: Botón para agregar material (solo admin) -->
+                        <button class="btn btn-primary admin-only" id="new-material-btn" style="display: none;">➕ Nuevo Material</button>
+                    </div>
+                </div>
+                
+                <div class="search-bar">
+                    <input type="text" id="material-search" placeholder="🔍 Buscar materiales...">
+                    <select id="category-filter">
+                        <option value="">Todas las categorías</option>
+                        <option value="cables">Cable</option>
+                        <option value="conectores">Conectores</option>
+                        <option value="repartidores">Repartidores</option>
+                        <option value="herramientas">Herramientas</option>
+                        <option value="equipos">Equipos</option>
+                        <option value="menudo">Material Menudo</option>
+                    </select>
+                </div>
+                
+                <div class="table-container">
+                    <table id="materials-table">
+                        <thead>
+                            <tr>
+                                <th>Código</th>
+                                <th>Nombre</th>
+                                <th>Categoría</th>
+                                <th>Stock</th>
+                                <th>Estado</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="materials-tbody">
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Configuración -->
+            <section id="configuracion" class="section">
+                <div class="section-header">
+                    <h1>⚙️ Configuración</h1>
+                </div>
+                
+                <div class="config-sections">
+                    <div class="config-section">
+                        <h3>⚙️ Configuración General</h3>
+                        <form id="settings-form">
+                            <div class="form-group">
+                                <label for="company-name">Nombre de la Empresa:</label>
+                                <input type="text" id="company-name" name="companyName">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="notification-threshold">Umbral de Alertas (%):</label>
+                                <input type="number" id="notification-threshold" name="notificationThreshold" min="1" max="50">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="auto-backup">Backup Automático:</label>
+                                <select id="auto-backup" name="autoBackup">
+                                    <option value="true">Activado</option>
+                                    <option value="false">Desactivado</option>
+                                </select>
+                            </div>
+                            
+                            <button type="submit" class="btn btn-primary">💾 Guardar Configuración</button>
+                        </form>
+                    </div>
+                    
+                    <div class="config-section">
+                        <h3>📊 Datos y Control</h3>
+                        <!-- NUEVAS FUNCIONALIDADES AGREGADAS -->
+                        <div class="data-actions">
+                            <!-- Botón Vaciar Stock (solo admin) -->
+                            <button class="btn btn-danger admin-only" id="empty-stock-btn" style="display: none;">
+                                🗑️ Vaciar Stock
+                            </button>
+                            
+                            <!-- Botón Limpiar Base de Datos Firebase (solo admin) -->
+                            <button class="btn btn-danger admin-only" id="clear-firebase-btn" style="display: none;">
+                                🔥 Limpiar Base de Datos Firebase
+                            </button>
+                            
+                            <!-- Botón Crear Backup (solo admin) -->
+                            <button class="btn btn-primary admin-only" id="create-backup-btn" style="display: none;">
+                                💾 Crear Backup
+                            </button>
+                            
+                            <!-- Botón Restaurar Backup (solo admin) -->
+                            <button class="btn btn-warning admin-only" id="restore-backup-btn" style="display: none;">
+                                📂 Restaurar Backup
+                            </button>
+                            
+                            <!-- Opciones existentes -->
+                            <button class="btn btn-secondary" id="export-excel-btn">📊 Descargar Excel</button>
+                            <button class="btn btn-secondary" id="export-pdf-btn">📄 Descargar PDF</button>
+                            <button class="btn btn-secondary" id="export-data-btn">📥 Exportar JSON</button>
+                            <button class="btn btn-secondary" id="import-data-btn">📤 Importar Datos</button>
+                            
+                            <!-- Botón Limpiar Solo Movimientos (solo admin) -->
+                            <button class="btn btn-warning admin-only" id="clear-data-btn" style="display: none;">
+                                🧹 Limpiar Movimientos
+                            </button>
+                            
+                            <!-- Botón Limpiar TODOS los Datos (solo admin) -->
+                            <button class="btn btn-danger admin-only" id="clear-all-data-btn" style="display: none;">
+                                🧹 Limpiar TODOS los Datos
+                            </button>
+                            
+                            <!-- Botones de Diagnóstico (solo admin) -->
+                            <button class="btn btn-info admin-only" id="diagnose-data-btn" style="display: none;">
+                                🔍 Diagnosticar Datos
+                            </button>
+                            <button class="btn btn-success admin-only" id="restore-materials-btn" style="display: none;">
+                                🔄 Restaurar Materiales Básicos
+                            </button>
+                        </div>
+                        
+                        <!-- Nota sobre funcionalidades de admin -->
+                        <div class="admin-note">
+                            <p><strong>Nota:</strong> Las funciones de backup, restauración y limpieza de datos están disponibles solo para administradores.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Usuarios -->
+            <section id="usuarios" class="section">
+                <div class="section-header">
+                    <h1>👥 Gestión de Usuarios</h1>
+                    <button class="btn btn-primary admin-only" id="add-user-btn">➕ Nuevo Usuario</button>
+                </div>
+                
+                <div class="table-container">
+                    <table id="users-table">
+                        <thead>
+                            <tr>
+                                <th>Nombre</th>
+                                <th>Rol</th>
+                                <th>Activo</th>
+                                <th>Contraseña</th>
+                            </tr>
+                        </thead>
+                        <tbody id="users-tbody">
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <!-- Modal de Login -->
+    <div id="login-modal" class="modal">
+        <div class="modal-content login-modal">
+            <div class="modal-header">
+                <h2>🔐 Acceso al Sistema</h2>
+                <div class="modal-subtitle">
+                    <p>Sistema de Control de Stock - Fibra Óptica</p>
+                    <div class="firebase-status">
+                        <span class="status-indicator online">●</span>
+                        <span>Online - Sincronizado</span>
+                    </div>
+                </div>
+            </div>
+            <form id="login-form">
+                <div class="form-group">
+                    <label for="worker-select">Selecciona tu nombre:</label>
+                    <select id="worker-select" required>
+                        <option value="">-- Selecciona tu nombre --</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="login-password">Contraseña:</label>
+                    <input type="password" id="login-password" placeholder="Ingresa tu contraseña" required>
+                </div>
+                <button type="submit" class="btn btn-primary btn-full">🚀 Ingresar</button>
+            </form>
+            <div class="login-footer">
+                <button type="button" class="btn btn-secondary btn-full" id="admin-login-btn">👨‍💼 Acceso Administrador</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Login de Administrador -->
+    <div id="admin-login-modal" class="modal">
+        <div class="modal-content login-modal">
+            <div class="modal-header">
+                <h2>👨‍💼 Acceso Administrador</h2>
+                <div class="modal-subtitle">
+                    <p>Panel de Administración</p>
+                    <div class="firebase-status">
+                        <span class="status-indicator online">●</span>
+                        <span>Online - Sincronizado</span>
+                    </div>
+                </div>
+            </div>
+            <form id="admin-login-form">
+                <div class="form-group">
+                    <label for="admin-select">Selecciona tu nombre:</label>
+                    <select id="admin-select" required>
+                        <option value="">-- Selecciona tu nombre --</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="admin-password">Contraseña:</label>
+                    <input type="password" id="admin-password" placeholder="Ingresa tu contraseña" required>
+                </div>
+                <button type="submit" class="btn btn-primary btn-full">🚀 Ingresar como Admin</button>
+            </form>
+            <div class="login-footer">
+                <button type="button" class="btn btn-secondary btn-full modal-cancel">🔙 Volver al Login</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Nuevo Movimiento -->
+    <div id="movement-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Nuevo Movimiento</h2>
+                <span class="close">&times;</span>
+            </div>
+            <form id="movement-form">
+                <div class="form-group">
+                    <label for="movement-material">Material:</label>
+                    <select id="movement-material" required>
+                        <option value="">-- Selecciona un material --</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="movement-type">Tipo de Movimiento:</label>
+                    <select id="movement-type" required>
+                        <option value="">-- Selecciona el tipo --</option>
+                        <option value="entrada">📦 Entrada</option>
+                        <option value="salida">📤 Salida</option>
+                        <option value="ajuste">⚖️ Ajuste</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="movement-quantity">Cantidad:</label>
+                    <input type="number" id="movement-quantity" min="1" required>
+                </div>
+                <div class="form-group">
+                    <label for="movement-observations">Observaciones:</label>
+                    <textarea id="movement-observations" rows="3"></textarea>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" id="cancel-movement-btn" class="btn btn-secondary modal-cancel">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">💾 Guardar Movimiento</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Estilos adicionales para las nuevas funcionalidades -->
+    <style>
+        /* Estilos para indicadores de estado */
+        .connection-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 8px;
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .status-indicator {
+            font-size: 8px;
+        }
+
+        .status-indicator.online {
+            color: #10b981;
+        }
+
+        .status-indicator.offline {
+            color: #ef4444;
+        }
+
+        .firebase-status {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            color: #10b981;
+            margin-top: 8px;
+        }
+
+        .modal-subtitle {
+            text-align: center;
+            color: #6b7280;
+            margin-bottom: 16px;
+        }
+
+        .modal-subtitle p {
+            margin: 0;
+            font-size: 14px;
+        }
+
+        /* Estilos para botones admin */
+        .admin-only {
+            /* Los estilos se manejan dinámicamente en JavaScript */
+        }
+
+        .admin-note {
+            margin-top: 16px;
+            padding: 12px;
+            background: #fef3c7;
+            border: 1px solid #fbbf24;
+            border-radius: 8px;
+            color: #92400e;
+            font-size: 14px;
+        }
+
+        /* Estilos para notificaciones */
+        @keyframes slideInRight {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideOutRight {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+        }
+
+        .notification {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        /* Mejoras en el diseño responsive */
+        @media (max-width: 768px) {
+            .connection-status {
+                font-size: 11px;
+            }
+            
+            .firebase-status {
+                font-size: 11px;
+            }
+            
+            .section-actions {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 8px;
+            }
+            
+            .section-actions .btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+
+    <!-- Scripts de la aplicación -->
+    <script src="firebase-config.js"></script>
+    <script src="firebase-storage.js"></script>
+    <script src="firebase-app.js"></script>
+    
+    <!-- Inicialización de la aplicación -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM cargado, inicializando aplicación online...');
+            new FibraOpticaApp();
+        });
+    </script>
+</body>
+</html>

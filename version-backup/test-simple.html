@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test - Aplicación Fibra Óptica</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f7fa;
+        }
+        .test-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .test-section {
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .success { color: green; }
+        .error { color: red; }
+        .warning { color: orange; }
+        button {
+            background: #2563eb;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #1d4ed8;
+        }
+        select, input {
+            padding: 8px;
+            margin: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .worker-list {
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin-top: 10px;
+        }
+        .worker-item {
+            padding: 5px;
+            border-bottom: 1px solid #eee;
+        }
+        .worker-item:last-child {
+            border-bottom: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🔧 Test de la Aplicación - Control de Materiales Fibra Óptica</h1>
+        
+        <div class="test-section">
+            <h3>📋 Información del Sistema</h3>
+            <div id="system-info"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>👥 Test de Trabajadores</h3>
+            <button onclick="testWorkers()">🔍 Cargar y Verificar Trabajadores</button>
+            <div id="workers-result"></div>
+            <div class="worker-list" id="workers-list"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>🔐 Test de Login Simple</h3>
+            <p><strong>Trabajadores (contraseña: 1234):</strong></p>
+            <select id="test-worker-select">
+                <option value="">-- Selecciona un trabajador --</option>
+            </select>
+            <input type="password" id="test-worker-password" placeholder="Contraseña" value="1234">
+            <button onclick="testWorkerLogin()">🚀 Login Trabajador</button>
+            <div id="worker-login-result"></div>
+            
+            <p style="margin-top: 20px;"><strong>Administradores (contraseña: admin123):</strong></p>
+            <select id="test-admin-select">
+                <option value="">-- Selecciona un administrador --</option>
+            </select>
+            <input type="password" id="test-admin-password" placeholder="Contraseña" value="admin123">
+            <button onclick="testAdminLogin()">👨‍💼 Login Administrador</button>
+            <div id="admin-login-result"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>🗃️ Test de LocalStorage</h3>
+            <button onclick="testLocalStorage()">💾 Verificar LocalStorage</button>
+            <div id="storage-result"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>🚀 Iniciar Aplicación Principal</h3>
+            <p>Si todo los tests pasan, puedes iniciar la aplicación principal:</p>
+            <button onclick="window.open('index.html', '_blank')" style="font-size: 18px; padding: 15px 30px;">🏁 Abrir Aplicación Principal</button>
+        </div>
+
+        <div class="test-section">
+            <h3>🧹 Limpiar Datos</h3>
+            <button onclick="clearAllData()" style="background: #ef4444;">🗑️ Limpiar Todos los Datos</button>
+            <div id="clear-result"></div>
+        </div>
+    </div>
+
+    <script src="js/storage.js"></script>
+    <script>
+        // Verificar que storage esté disponible
+        if (typeof window.storageManager === 'undefined') {
+            alert('Error: storage.js no se cargó correctamente');
+        }
+
+        // Mostrar información del sistema
+        function showSystemInfo() {
+            const info = `
+                <p><strong>JavaScript:</strong> <span class="success">✅ Disponible</span></p>
+                <p><strong>LocalStorage:</strong> <span id="storage-support" class="warning">⏳ Verificando...</span></p>
+                <p><strong>StorageManager:</strong> <span id="storage-manager-status" class="warning">⏳ Verificando...</span></p>
+                <p><strong>Fecha actual:</strong> ${new Date().toLocaleString('es-ES')}</p>
+            `;
+            document.getElementById('system-info').innerHTML = info;
+
+            // Verificar localStorage
+            if (typeof(Storage) !== "undefined") {
+                document.getElementById('storage-support').innerHTML = '✅ Disponible';
+                document.getElementById('storage-support').className = 'success';
+            } else {
+                document.getElementById('storage-support').innerHTML = '❌ No disponible';
+                document.getElementById('storage-support').className = 'error';
+            }
+
+            // Verificar StorageManager
+            if (window.storageManager) {
+                document.getElementById('storage-manager-status').innerHTML = '✅ Cargado';
+                document.getElementById('storage-manager-status').className = 'success';
+            } else {
+                document.getElementById('storage-manager-status').innerHTML = '❌ No cargado';
+                document.getElementById('storage-manager-status').className = 'error';
+            }
+        }
+
+        // Test de trabajadores
+        function testWorkers() {
+            try {
+                const workers = window.storageManager.getWorkers();
+                const workerSelect = document.getElementById('test-worker-select');
+                const adminSelect = document.getElementById('test-admin-select');
+                const workersList = document.getElementById('workers-list');
+                
+                // Limpiar selects
+                workerSelect.innerHTML = '<option value="">-- Selecciona un trabajador --</option>';
+                adminSelect.innerHTML = '<option value="">-- Selecciona un administrador --</option>';
+                workersList.innerHTML = '';
+
+                let workersCount = 0;
+                let adminsCount = 0;
+                let html = '<h4>Lista de Trabajadores:</h4>';
+
+                workers.forEach(worker => {
+                    const isWorker = worker.role === 'trabajador';
+                    const isAdmin = worker.role === 'administrador';
+                    
+                    html += `<div class="worker-item">
+                        <strong>${worker.name}</strong> (${worker.code}) - ${worker.role} - ${worker.status} 
+                        <small style="color: #666;">Contraseña: ${worker.password}</small>
+                    </div>`;
+
+                    if (isWorker) {
+                        const option = document.createElement('option');
+                        option.value = worker.name;
+                        option.textContent = worker.name;
+                        workerSelect.appendChild(option);
+                        workersCount++;
+                    } else if (isAdmin) {
+                        const option = document.createElement('option');
+                        option.value = worker.name;
+                        option.textContent = worker.name;
+                        adminSelect.appendChild(option);
+                        adminsCount++;
+                    }
+                });
+
+                workersList.innerHTML = html;
+
+                const result = `
+                    <p><strong>Total de trabajadores:</strong> ${workers.length}</p>
+                    <p><strong>Trabajadores:</strong> ${workersCount} <span class="success">✅</span></p>
+                    <p><strong>Administradores:</strong> ${adminsCount} <span class="success">✅</span></p>
+                    <p><strong>Estado:</strong> <span class="success">✅ Todos los trabajadores cargados correctamente</span></p>
+                `;
+
+                document.getElementById('workers-result').innerHTML = result;
+
+            } catch (error) {
+                document.getElementById('workers-result').innerHTML = `<p class="error">❌ Error: ${error.message}</p>`;
+            }
+        }
+
+        // Test de login de trabajador
+        function testWorkerLogin() {
+            const workerName = document.getElementById('test-worker-select').value;
+            const password = document.getElementById('test-worker-password').value;
+
+            if (!workerName || !password) {
+                document.getElementById('worker-login-result').innerHTML = '<p class="error">❌ Completa todos los campos</p>';
+                return;
+            }
+
+            try {
+                const worker = window.storageManager.getWorkerByName(workerName);
+                
+                if (!worker) {
+                    document.getElementById('worker-login-result').innerHTML = '<p class="error">❌ Trabajador no encontrado</p>';
+                    return;
+                }
+
+                if (worker.password !== password) {
+                    document.getElementById('worker-login-result').innerHTML = '<p class="error">❌ Contraseña incorrecta</p>';
+                    return;
+                }
+
+                document.getElementById('worker-login-result').innerHTML = `
+                    <p class="success">✅ Login exitoso para ${worker.name}</p>
+                    <p><strong>Rol:</strong> ${worker.role}</p>
+                    <p><strong>Email:</strong> ${worker.email}</p>
+                `;
+
+            } catch (error) {
+                document.getElementById('worker-login-result').innerHTML = `<p class="error">❌ Error: ${error.message}</p>`;
+            }
+        }
+
+        // Test de login de administrador
+        function testAdminLogin() {
+            const adminName = document.getElementById('test-admin-select').value;
+            const password = document.getElementById('test-admin-password').value;
+
+            if (!adminName || !password) {
+                document.getElementById('admin-login-result').innerHTML = '<p class="error">❌ Completa todos los campos</p>';
+                return;
+            }
+
+            try {
+                const admin = window.storageManager.getWorkerByName(adminName);
+                
+                if (!admin) {
+                    document.getElementById('admin-login-result').innerHTML = '<p class="error">❌ Administrador no encontrado</p>';
+                    return;
+                }
+
+                if (admin.password !== password) {
+                    document.getElementById('admin-login-result').innerHTML = '<p class="error">❌ Contraseña incorrecta</p>';
+                    return;
+                }
+
+                document.getElementById('admin-login-result').innerHTML = `
+                    <p class="success">✅ Login de administrador exitoso para ${admin.name}</p>
+                    <p><strong>Rol:</strong> ${admin.role}</p>
+                    <p><strong>Email:</strong> ${admin.email}</p>
+                `;
+
+            } catch (error) {
+                document.getElementById('admin-login-result').innerHTML = `<p class="error">❌ Error: ${error.message}</p>`;
+            }
+        }
+
+        // Test de localStorage
+        function testLocalStorage() {
+            try {
+                const keys = ['workers', 'materials', 'movements', 'settings'];
+                let html = '<h4>Estado de LocalStorage:</h4>';
+                let allOk = true;
+
+                keys.forEach(key => {
+                    try {
+                        const data = window.storageManager.getItem(key);
+                        if (data !== null && data !== undefined) {
+                            html += `<p><strong>${key}:</strong> ${Array.isArray(data) ? data.length + ' elementos' : 'configurado'} <span class="success">✅</span></p>`;
+                        } else {
+                            html += `<p><strong>${key}:</strong> <span class="warning">⚠️ No encontrado</span></p>`;
+                            allOk = false;
+                        }
+                    } catch (error) {
+                        html += `<p><strong>${key}:</strong> <span class="error">❌ Error: ${error.message}</span></p>`;
+                        allOk = false;
+                    }
+                });
+
+                if (allOk) {
+                    html += '<p class="success"><strong>✅ LocalStorage funcionando correctamente</strong></p>';
+                } else {
+                    html += '<p class="warning"><strong>⚠️ Algunos datos pueden estar faltando</strong></p>';
+                }
+
+                document.getElementById('storage-result').innerHTML = html;
+
+            } catch (error) {
+                document.getElementById('storage-result').innerHTML = `<p class="error">❌ Error: ${error.message}</p>`;
+            }
+        }
+
+        // Limpiar todos los datos
+        function clearAllData() {
+            if (confirm('¿Estás seguro de que quieres eliminar todos los datos? Esta acción no se puede deshacer.')) {
+                try {
+                    localStorage.clear();
+                    window.storageManager.initializeData();
+                    
+                    document.getElementById('clear-result').innerHTML = '<p class="success">✅ Datos limpiados correctamente</p>';
+                    
+                    // Recargar página después de 2 segundos
+                    setTimeout(() => {
+                        location.reload();
+                    }, 2000);
+
+                } catch (error) {
+                    document.getElementById('clear-result').innerHTML = `<p class="error">❌ Error: ${error.message}</p>`;
+                }
+            }
+        }
+
+        // Inicializar cuando la página esté lista
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Página de test cargada');
+            showSystemInfo();
+            
+            // Auto-ejecutar algunos tests
+            setTimeout(testWorkers, 500);
+            setTimeout(testLocalStorage, 1000);
+        });
+    </script>
+</body>
+</html>

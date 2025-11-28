@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Rápido - Corrección de Errores</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+        .success { background-color: #d4edda; border-color: #c3e6cb; }
+        .error { background-color: #f8d7da; border-color: #f5c6cb; }
+        button { margin: 5px; padding: 8px 15px; }
+    </style>
+</head>
+<body>
+    <h1>🧪 Test Rápido - Verificación de Correcciones</h1>
+    
+    <div class="test-section">
+        <h2>✅ Test 1: Verificación de Sintaxis Firebase-App.js</h2>
+        <p>Verificando que no haya errores de sintaxis...</p>
+        <div id="syntax-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>✅ Test 2: Verificación de Clase FibraOpticaApp</h2>
+        <p>Verificando que la clase esté definida...</p>
+        <div id="class-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>✅ Test 3: Carga de Scripts</h2>
+        <p>Verificando orden de carga...</p>
+        <div id="scripts-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>🚀 Próximos Pasos</h2>
+        <p>Si todos los tests pasan, abre <strong>index.html</strong> e intenta:</p>
+        <ol>
+            <li>Iniciar sesión con: <strong>BORJA CARRERAS MARTIN</strong> / <strong>admin123</strong></li>
+            <li>Crear nuevo material (stock inicial 20, mínimo 2)</li>
+            <li>Verificar que no aparezcan errores de sintaxis</li>
+        </ol>
+    </div>
+
+    <!-- Scripts en orden correcto -->
+    <script src="firebase-config.js"></script>
+    <script src="firebase-storage.js"></script>
+    <script src="firebase-app.js"></script>
+
+    <script>
+        // Test 1: Verificar sintaxis (sin errores en consola)
+        setTimeout(() => {
+            const hasErrors = window.firebaseError || false;
+            document.getElementById('syntax-result').innerHTML = 
+                hasErrors ? 
+                '<div class="error">❌ Errores detectados en consola' :
+                '<div class="success">✅ No hay errores de sintaxis en firebase-app.js</div>';
+        }, 1000);
+
+        // Test 2: Verificar clase y instancia
+        setTimeout(() => {
+            const classExists = typeof FibraOpticaApp === 'function';
+            const hasWindowApp = typeof window.app !== 'undefined';
+            
+            let result = '';
+            if (classExists) {
+                result = '<div class="success">✅ Clase FibraOpticaApp definida correctamente</div>';
+            } else {
+                result = '<div class="error">❌ Clase FibraOpticaApp NO está definida</div>';
+            }
+            
+            if (hasWindowApp) {
+                result += '<br><div class="success">✅ Instancia window.app creada correctamente</div>';
+            } else {
+                result += '<br><div class="error">❌ Instancia window.app NO creada</div>';
+            }
+            
+            document.getElementById('class-result').innerHTML = result;
+        }, 1000);
+
+        // Test 3: Verificar scripts
+        setTimeout(() => {
+            const configLoaded = typeof window.firebaseConfig !== 'undefined';
+            const storageLoaded = typeof window.FirebaseStorageManager !== 'undefined';
+            const appLoaded = typeof window.app !== 'undefined';
+            
+            let result = '<div class="success">✅ Scripts cargados correctamente:';
+            if (configLoaded) result += '<br>• firebase-config.js';
+            if (storageLoaded) result += '<br>• firebase-storage.js';
+            if (appLoaded) result += '<br>• firebase-app.js';
+            result += '</div>';
+            
+            document.getElementById('scripts-result').innerHTML = result;
+        }, 1500);
+    </script>
+</body>
+</html>

@@ -1,0 +1,3313 @@
+/**
+ * Control de Material - Fibra Óptica Online
+ * Versión con Firebase Realtime Database
+ */
+
+class FibraOpticaApp {
+    constructor() {
+        console.log('Iniciando aplicación online...');
+        
+        // Inicializar managers
+        this.storage = window.storageManager;
+        this.isOnline = navigator.onLine;
+        
+        // Estado de la aplicación
+        this.currentUser = null;
+        this.isAdmin = false;
+        this.selectedMaterials = [];
+        
+        // Control de event listeners para evitar duplicados
+        this.eventListenersAdded = false;
+        this.materialsEventListenerAdded = false;
+        this.usersEventListenerAdded = false;
+        this.loginListenersAdded = false;
+        
+        // Configurar eventos online/offline
+        window.addEventListener('online', () => {
+            this.isOnline = true;
+            this.showOnlineStatus();
+        });
+        
+        window.addEventListener('offline', () => {
+            this.isOnline = false;
+            this.showOfflineStatus();
+        });
+        
+        // Inicializar aplicación
+        this.init();
+    }
+
+    /**
+     * Inicializa la aplicación
+     */
+    async init() {
+        console.log('Inicializando aplicación online...');
+        
+        try {
+            // Configurar eventos
+            this.setupEventListeners();
+            
+            // Cargar dropdowns inmediatamente
+            await this.loadDropdowns();
+            
+            // Configurar listeners en tiempo real
+            this.setupRealtimeListeners();
+            
+            // Mostrar modal de login
+            this.showLoginModal();
+            
+            // Ocultar pantalla de carga
+            setTimeout(() => {
+                this.hideLoadingScreen();
+            }, 100);
+            
+            console.log('Aplicación online inicializada correctamente');
+            
+        } catch (error) {
+            console.error('Error inicializando aplicación:', error);
+            alert('Error al cargar la aplicación. Recarga la página.');
+        }
+    }
+
+    /**
+     * Método de debug para verificar el estado de Firebase
+     */
+    async debugFirebaseData() {
+        console.log('=== DEBUG FIREBASE DATA ===');
+        console.log('Online status:', this.storage.isOnline);
+        
+        try {
+            // Verificar materiales
+            const materials = await this.storage.getMaterials();
+            console.log('Materials count:', materials.length);
+            
+            // Verificar trabajadores
+            const workers = await this.storage.getWorkers();
+            console.log('Workers count:', workers.length);
+            console.log('Workers type:', typeof workers);
+            console.log('Workers isArray:', Array.isArray(workers));
+            
+            // Verificar movimientos
+            const movements = await this.storage.getMovements();
+            console.log('Movements count:', movements.length);
+            
+            console.log('=== END DEBUG ===');
+            
+            return { materials: materials.length, workers: workers.length, movements: movements.length };
+        } catch (error) {
+            console.error('Error en debug:', error);
+            return null;
+        }
+    }
+
+    /**
+     * Configura listeners para cambios en tiempo real
+     */
+    setupRealtimeListeners() {
+        // Listener para materiales
+        this.storage.addListener('materials', () => {
+            if (this.currentUser) {
+                this.loadDashboard();
+                if (this.isSectionActive('materiales')) {
+                    this.loadMaterialsTable();
+                }
+            }
+        });
+
+        // Listener para movimientos
+        this.storage.addListener('movements', () => {
+            if (this.currentUser) {
+                this.loadDashboard();
+                if (this.isSectionActive('movimientos')) {
+                    this.loadMovementsTable();
+                }
+            }
+        });
+
+        // Listener para trabajadores
+        this.storage.addListener('workers', () => {
+            if (this.currentUser) {
+                this.loadDropdowns();
+                if (this.isAdmin && this.isSectionActive('usuarios')) {
+                    this.loadUsersTable();
+                }
+            }
+        });
+    }
+
+    /**
+     * Verifica si una sección está activa
+     */
+    isSectionActive(sectionId) {
+        const section = document.getElementById(sectionId);
+        return section && section.classList.contains('active');
+    }
+
+    /**
+     * Configura todos los event listeners
+     */
+    /**
+     * Configura los event listeners de la aplicación
+     */
+    setupEventListeners() {
+        // Evitar configurar event listeners múltiples veces
+        if (this.eventListenersAdded) {
+            console.log('Event listeners ya configurados');
+            return;
+        }
+        this.eventListenersAdded = true;
+        console.log('Configurando event listeners principales...');
+        
+        // Login - Solo configurar si no existen ya
+        if (!this.loginListenersAdded) {
+            const loginForm = document.getElementById('login-form');
+            const adminLoginForm = document.getElementById('admin-login-form');
+            const adminLoginBtn = document.getElementById('admin-login-btn');
+            
+            if (loginForm) loginForm.addEventListener('submit', (e) => this.handleLogin(e));
+            if (adminLoginForm) adminLoginForm.addEventListener('submit', (e) => this.handleAdminLogin(e));
+            if (adminLoginBtn) adminLoginBtn.addEventListener('click', () => this.showAdminModal());
+            
+            this.loginListenersAdded = true;
+        }
+        
+        // Modal buttons
+        document.querySelectorAll('.modal-cancel').forEach(btn => {
+            btn.addEventListener('click', () => this.closeModal('admin-login-modal'));
+        });
+        
+        document.querySelectorAll('.close').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const modal = e.target.closest('.modal');
+                if (modal) {
+                    this.closeModal(modal.id);
+                }
+            });
+        });
+        
+        // Navigation
+        document.querySelectorAll('.menu-item').forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const section = e.target.getAttribute('data-section');
+                this.navigateToSection(section);
+            });
+        });
+        
+        // Logout (con verificación y prevención de duplicados)
+        const logoutElements = [
+            { id: 'logout-btn', handler: () => this.logout() },
+            { id: 'sidebar-logout-btn', handler: (e) => { e.preventDefault(); this.logout(); } }
+        ];
+        
+        logoutElements.forEach(element => {
+            const el = document.getElementById(element.id);
+            if (el) {
+                console.log(`Configurando logout para elemento: ${element.id}`);
+                // Clonar elemento para remover todos los listeners previos
+                const newEl = el.cloneNode(true);
+                el.parentNode.replaceChild(newEl, el);
+                // Agregar nuevo listener
+                newEl.addEventListener('click', element.handler);
+                console.log(`Logout configurado para: ${element.id}`);
+            } else {
+                console.log(`Elemento de logout no encontrado: ${element.id}`);
+            }
+        });
+        
+        console.log('Event listeners principales configurados');
+        
+        // Movement form (con verificación de existencia y prevención de duplicados)
+        const movementElements = [
+            { id: 'new-movement-btn', handler: () => this.showMovementModal() },
+            { id: 'movement-form', handler: (e) => this.handleMovementSubmit(e) },
+            { id: 'cancel-movement-btn', handler: () => this.cancelMovement() }
+        ];
+        
+        movementElements.forEach(element => {
+            const el = document.getElementById(element.id);
+            if (el) {
+                console.log(`Configurando elemento de movimiento: ${element.id}`);
+                // Clonar elemento para remover todos los listeners previos
+                const newEl = el.cloneNode(true);
+                el.parentNode.replaceChild(newEl, el);
+                // Agregar nuevo listener
+                if (element.id === 'movement-form') {
+                    newEl.addEventListener('submit', element.handler);
+                } else {
+                    newEl.addEventListener('click', element.handler);
+                }
+                console.log(`Elemento de movimiento configurado: ${element.id}`);
+            }
+        });
+        
+        // Search and filters
+        document.getElementById('movement-search').addEventListener('input', () => this.filterMovements());
+        document.getElementById('movement-filter').addEventListener('change', () => this.filterMovements());
+        
+        document.getElementById('material-search').addEventListener('input', () => this.filterMaterials());
+        document.getElementById('category-filter').addEventListener('change', () => this.filterMaterials());
+        
+        // Report controls
+        document.getElementById('generate-report-btn').addEventListener('click', () => this.generateReport());
+        
+        // Settings form
+        document.getElementById('settings-form').addEventListener('submit', (e) => this.handleSettingsSubmit(e));
+        
+        // Data actions - NUEVAS FUNCIONALIDADES
+        document.getElementById('empty-stock-btn').addEventListener('click', () => this.emptyStock());
+        document.getElementById('create-backup-btn').addEventListener('click', () => this.createBackup());
+        document.getElementById('restore-backup-btn').addEventListener('click', () => this.restoreBackup());
+        document.getElementById('clear-data-btn').addEventListener('click', () => this.clearData());
+        document.getElementById('clear-all-data-btn')?.addEventListener('click', () => this.clearAllData());
+        document.getElementById('diagnose-data-btn')?.addEventListener('click', () => this.diagnoseData());
+        document.getElementById('restore-materials-btn')?.addEventListener('click', () => this.restoreAllMaterials());
+        
+        // Export/Import existentes
+        document.getElementById('export-data-btn').addEventListener('click', () => this.exportData());
+        document.getElementById('import-data-btn').addEventListener('click', () => this.importData());
+        
+        // Users management (admin only)
+        document.getElementById('add-user-btn').addEventListener('click', () => this.addNewUser());
+        
+        // Event delegation para tabla de materiales
+        document.getElementById('materials-table').addEventListener('click', (e) => this.handleMaterialsTableClick(e));
+        
+        // Event delegation para tabla de usuarios
+        document.getElementById('users-table').addEventListener('click', (e) => this.handleUsersTableClick(e));
+        
+        // Download options
+        document.getElementById('export-excel-btn').addEventListener('click', () => this.exportToExcel());
+        document.getElementById('export-pdf-btn').addEventListener('click', () => this.exportToPDF());
+        
+        // Materiales
+        document.getElementById('export-materials-pdf-btn').addEventListener('click', () => this.exportMaterialsPDF());
+        document.getElementById('new-material-btn').addEventListener('click', () => this.showNewMaterialModal()); // NUEVA FUNCIONALIDAD
+        
+        // Reportes
+        document.getElementById('print-report-btn').addEventListener('click', () => this.printReport());
+        document.getElementById('download-pdf-btn').addEventListener('click', () => this.downloadReportPDF());
+        document.getElementById('report-type').addEventListener('change', () => this.hideReportActions());
+        document.getElementById('report-start-date').addEventListener('change', () => this.hideReportActions());
+        document.getElementById('report-end-date').addEventListener('change', () => this.hideReportActions());
+        
+        // Modal clicks to close - excluding login modals
+        document.querySelectorAll('.modal').forEach(modal => {
+            modal.addEventListener('click', (e) => {
+                // Only close modal on outside click for movement modal, not for login modals
+                if (e.target === modal && !modal.id.includes('login-modal')) {
+                    this.closeModal(modal.id);
+                }
+            });
+        });
+    }
+
+    /**
+     * Muestra estado online
+     */
+    showOnlineStatus() {
+        console.log('🟢 Conexión restaurada - Modo online');
+        this.showNotification('Conexión restaurada', 'success');
+    }
+
+    /**
+     * Muestra estado offline
+     */
+    showOfflineStatus() {
+        console.log('🔴 Sin conexión - Modo offline');
+        this.showNotification('Sin conexión - Trabajando offline', 'warning');
+    }
+
+    /**
+     * Muestra notificación temporal
+     */
+    showNotification(message, type = 'info') {
+        // Crear elemento de notificación
+        const notification = document.createElement('div');
+        notification.className = `notification notification-${type}`;
+        notification.textContent = message;
+        
+        // Estilos inline para la notificación
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 12px 20px;
+            border-radius: 8px;
+            color: white;
+            font-weight: 600;
+            z-index: 10000;
+            animation: slideInRight 0.3s ease-out;
+        `;
+        
+        // Colores según tipo
+        if (type === 'success') {
+            notification.style.backgroundColor = '#10b981';
+        } else if (type === 'warning') {
+            notification.style.backgroundColor = '#f59e0b';
+        } else if (type === 'error') {
+            notification.style.backgroundColor = '#ef4444';
+        } else {
+            notification.style.backgroundColor = '#3b82f6';
+        }
+        
+        document.body.appendChild(notification);
+        
+        // Remover después de 3 segundos
+        setTimeout(() => {
+            notification.style.animation = 'slideOutRight 0.3s ease-in';
+            setTimeout(() => {
+                document.body.removeChild(notification);
+            }, 300);
+        }, 3000);
+    }
+
+    /**
+     * Carga los dropdowns de trabajadores y administradores
+     */
+    async loadDropdowns() {
+        try {
+            // Cargar dropdown de trabajadores
+            await this.loadWorkerDropdown();
+            
+            // Cargar dropdown de administradores
+            await this.loadAdminDropdown();
+            
+            console.log('Dropdowns cargados correctamente');
+        } catch (error) {
+            console.error('Error cargando dropdowns:', error);
+        }
+    }
+
+    /**
+     * Carga el dropdown de trabajadores
+     */
+    async loadWorkerDropdown() {
+        const workerSelect = document.getElementById('worker-select');
+        if (!workerSelect) {
+            console.error('No se encontró el elemento worker-select');
+            return;
+        }
+        
+        try {
+            const workers = await this.storage.getWorkers();
+            console.log('Debug - loadWorkerDropdown workers:', workers);
+            console.log('Debug - loadWorkerDropdown type:', typeof workers);
+            console.log('Debug - loadWorkerDropdown is array:', Array.isArray(workers));
+            
+            // Asegurar que tenemos un array
+            if (!Array.isArray(workers)) {
+                console.error('Los trabajadores no son un array:', workers);
+                return;
+            }
+            
+            console.log('Trabajadores cargados:', workers.length);
+            
+            // Limpiar opciones existentes
+            workerSelect.innerHTML = '<option value="">-- Selecciona tu nombre --</option>';
+            
+            // Agregar trabajadores activos (no administradores)
+            workers
+                .filter(worker => worker.status === 'activo' && worker.role === 'trabajador')
+                .sort((a, b) => a.name.localeCompare(b.name))
+                .forEach(worker => {
+                    const option = document.createElement('option');
+                    option.value = worker.name;
+                    option.textContent = worker.name;
+                    workerSelect.appendChild(option);
+                });
+            
+            console.log('Dropdown de trabajadores cargado con', workerSelect.options.length - 1, 'trabajadores');
+            
+        } catch (error) {
+            console.error('Error cargando dropdown de trabajadores:', error);
+        }
+    }
+
+    /**
+     * Carga el dropdown de administradores
+     */
+    async loadAdminDropdown() {
+        const adminSelect = document.getElementById('admin-select');
+        if (!adminSelect) {
+            console.error('No se encontró el elemento admin-select');
+            return;
+        }
+        
+        try {
+            const workers = await this.storage.getWorkers();
+            
+            // Asegurar que tenemos un array
+            if (!Array.isArray(workers)) {
+                console.error('Los trabajadores no son un array en loadAdminDropdown:', workers);
+                return;
+            }
+            
+            // Limpiar opciones existentes
+            adminSelect.innerHTML = '<option value="">-- Selecciona tu nombre --</option>';
+            
+            // Agregar administradores activos
+            workers
+                .filter(worker => worker.status === 'activo' && worker.role === 'administrador')
+                .sort((a, b) => a.name.localeCompare(b.name))
+                .forEach(worker => {
+                    const option = document.createElement('option');
+                    option.value = worker.name;
+                    option.textContent = worker.name;
+                    adminSelect.appendChild(option);
+                });
+                
+            console.log('Dropdown de administradores cargado con', adminSelect.options.length - 1, 'administradores');
+            
+        } catch (error) {
+            console.error('Error cargando dropdown de administradores:', error);
+        }
+    }
+
+    /**
+     * Muestra el modal de login
+     */
+    showLoginModal() {
+        document.getElementById('login-modal').style.display = 'flex';
+        console.log('Modal de login mostrado');
+    }
+
+    /**
+     * Muestra el modal de administrador
+     */
+    showAdminModal() {
+        this.closeModal('login-modal');
+        document.getElementById('admin-login-modal').style.display = 'flex';
+    }
+
+    /**
+     * Maneja el login de trabajador
+     */
+    async handleLogin(e) {
+        e.preventDefault();
+        
+        const workerName = document.getElementById('worker-select').value;
+        const password = document.getElementById('login-password').value;
+        
+        if (!workerName || !password) {
+            // Modal único para validación
+            const existingModal = document.querySelector('#login-validation-modal');
+            if (existingModal) document.body.removeChild(existingModal);
+            
+            const modal = document.createElement('div');
+            modal.id = 'login-validation-modal';
+            modal.className = 'modal';
+            modal.innerHTML = `
+                <div class="modal-content" style="text-align: center; max-width: 400px;">
+                    <div class="modal-header">
+                        <h2>⚠️ Validación</h2>
+                    </div>
+                    <div style="padding: 20px;">
+                        <p>Por favor selecciona tu nombre e ingresa la contraseña</p>
+                        <div style="margin-top: 20px;">
+                            <button class="btn btn-primary" id="login-validation-ok">Aceptar</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+            modal.style.display = 'flex';
+            
+            document.getElementById('login-validation-ok').addEventListener('click', () => {
+                document.body.removeChild(modal);
+            });
+            return;
+        }
+        
+        try {
+            const worker = await this.storage.getWorkerByName(workerName);
+            if (!worker) {
+                // Modal único para usuario no encontrado
+                const existingModal = document.querySelector('#login-worker-not-found-modal');
+                if (existingModal) document.body.removeChild(existingModal);
+                
+                const modal = document.createElement('div');
+                modal.id = 'login-worker-not-found-modal';
+                modal.className = 'modal';
+                modal.innerHTML = `
+                    <div class="modal-content" style="text-align: center; max-width: 400px;">
+                        <div class="modal-header">
+                            <h2>❌ Error</h2>
+                        </div>
+                        <div style="padding: 20px;">
+                            <p>Trabajador no encontrado</p>
+                            <div style="margin-top: 20px;">
+                                <button class="btn btn-primary" id="login-worker-not-found-ok">Aceptar</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                document.body.appendChild(modal);
+                modal.style.display = 'flex';
+                
+                document.getElementById('login-worker-not-found-ok').addEventListener('click', () => {
+                    document.body.removeChild(modal);
+                });
+                return;
+            }
+            
+            if (worker.password !== password) {
+                // Modal único para contraseña incorrecta
+                const existingModal = document.querySelector('#login-wrong-password-modal');
+                if (existingModal) document.body.removeChild(existingModal);
+                
+                const modal = document.createElement('div');
+                modal.id = 'login-wrong-password-modal';
+                modal.className = 'modal';
+                modal.innerHTML = `
+                    <div class="modal-content" style="text-align: center; max-width: 400px;">
+                        <div class="modal-header">
+                            <h2>❌ Error de Acceso</h2>
+                        </div>
+                        <div style="padding: 20px;">
+                            <p>Contraseña incorrecta</p>
+                            <div style="margin-top: 20px;">
+                                <button class="btn btn-primary" id="login-wrong-password-ok">Aceptar</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                document.body.appendChild(modal);
+                modal.style.display = 'flex';
+                
+                document.getElementById('login-wrong-password-ok').addEventListener('click', () => {
+                    document.body.removeChild(modal);
+                });
+                return;
+            }
+            
+            // Login exitoso
+            this.currentUser = worker;
+            this.isAdmin = false;
+            
+            // Establecer usuario en storage para validaciones
+            this.storage.setCurrentUser(worker, false);
+            
+            this.closeModal('login-modal');
+            this.enterApplication();
+            
+            console.log('Login de trabajador exitoso:', worker.name);
+            
+        } catch (error) {
+            console.error('Error en login:', error);
+            // Modal único para error general
+            const existingModal = document.querySelector('#login-error-modal');
+            if (existingModal) document.body.removeChild(existingModal);
+            
+            const modal = document.createElement('div');
+            modal.id = 'login-error-modal';
+            modal.className = 'modal';
+            modal.innerHTML = `
+                <div class="modal-content" style="text-align: center; max-width: 400px;">
+                    <div class="modal-header">
+                        <h2>❌ Error</h2>
+                    </div>
+                    <div style="padding: 20px;">
+                        <p>Error al iniciar sesión. Inténtalo de nuevo.</p>
+                        <div style="margin-top: 20px;">
+                            <button class="btn btn-primary" id="login-error-ok">Aceptar</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+            modal.style.display = 'flex';
+            
+            document.getElementById('login-error-ok').addEventListener('click', () => {
+                document.body.removeChild(modal);
+            });
+        }
+    }
+
+    /**
+     * Maneja el login de administrador
+     */
+    async handleAdminLogin(e) {
+        e.preventDefault();
+        
+        const adminName = document.getElementById('admin-select').value;
+        const password = document.getElementById('admin-password').value;
+        
+        if (!adminName || !password) {
+            // Modal único para validación
+            const existingModal = document.querySelector('#admin-login-validation-modal');
+            if (existingModal) document.body.removeChild(existingModal);
+            
+            const modal = document.createElement('div');
+            modal.id = 'admin-login-validation-modal';
+            modal.className = 'modal';
+            modal.innerHTML = `
+                <div class="modal-content" style="text-align: center; max-width: 400px;">
+                    <div class="modal-header">
+                        <h2>⚠️ Validación</h2>
+                    </div>
+                    <div style="padding: 20px;">
+                        <p>Por favor selecciona tu nombre e ingresa la contraseña</p>
+                        <div style="margin-top: 20px;">
+                            <button class="btn btn-primary" id="admin-login-validation-ok">Aceptar</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+            modal.style.display = 'flex';
+            
+            document.getElementById('admin-login-validation-ok').addEventListener('click', () => {
+                document.body.removeChild(modal);
+            });
+            return;
+        }
+        
+        try {
+            const admin = await this.storage.getWorkerByName(adminName);
+            if (!admin) {
+                // Modal único para administrador no encontrado
+                const existingModal = document.querySelector('#admin-not-found-modal');
+                if (existingModal) document.body.removeChild(existingModal);
+                
+                const modal = document.createElement('div');
+                modal.id = 'admin-not-found-modal';
+                modal.className = 'modal';
+                modal.innerHTML = `
+                    <div class="modal-content" style="text-align: center; max-width: 400px;">
+                        <div class="modal-header">
+                            <h2>❌ Error</h2>
+                        </div>
+                        <div style="padding: 20px;">
+                            <p>Administrador no encontrado</p>
+                            <div style="margin-top: 20px;">
+                                <button class="btn btn-primary" id="admin-not-found-ok">Aceptar</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                document.body.appendChild(modal);
+                modal.style.display = 'flex';
+                
+                document.getElementById('admin-not-found-ok').addEventListener('click', () => {
+                    document.body.removeChild(modal);
+                });
+                return;
+            }
+            
+            if (admin.password !== password) {
+                // Modal único para contraseña incorrecta
+                const existingModal = document.querySelector('#admin-wrong-password-modal');
+                if (existingModal) document.body.removeChild(existingModal);
+                
+                const modal = document.createElement('div');
+                modal.id = 'admin-wrong-password-modal';
+                modal.className = 'modal';
+                modal.innerHTML = `
+                    <div class="modal-content" style="text-align: center; max-width: 400px;">
+                        <div class="modal-header">
+                            <h2>❌ Error de Acceso</h2>
+                        </div>
+                        <div style="padding: 20px;">
+                            <p>Contraseña incorrecta</p>
+                            <div style="margin-top: 20px;">
+                                <button class="btn btn-primary" id="admin-wrong-password-ok">Aceptar</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                document.body.appendChild(modal);
+                modal.style.display = 'flex';
+                
+                document.getElementById('admin-wrong-password-ok').addEventListener('click', () => {
+                    document.body.removeChild(modal);
+                });
+                return;
+            }
+            
+            // Login exitoso
+            this.currentUser = admin;
+            this.isAdmin = true;
+            
+            // Establecer usuario en storage para validaciones
+            this.storage.setCurrentUser(admin, true);
+            
+            this.closeModal('admin-login-modal');
+            this.enterApplication();
+            
+            console.log('Login de administrador exitoso:', admin.name);
+            
+        } catch (error) {
+            console.error('Error en login admin:', error);
+            // Modal único para error general
+            const existingModal = document.querySelector('#admin-login-error-modal');
+            if (existingModal) document.body.removeChild(existingModal);
+            
+            const modal = document.createElement('div');
+            modal.id = 'admin-login-error-modal';
+            modal.className = 'modal';
+            modal.innerHTML = `
+                <div class="modal-content" style="text-align: center; max-width: 400px;">
+                    <div class="modal-header">
+                        <h2>❌ Error</h2>
+                    </div>
+                    <div style="padding: 20px;">
+                        <p>Error al iniciar sesión como administrador. Inténtalo de nuevo.</p>
+                        <div style="margin-top: 20px;">
+                            <button class="btn btn-primary" id="admin-login-error-ok">Aceptar</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+            modal.style.display = 'flex';
+            
+            document.getElementById('admin-login-error-ok').addEventListener('click', () => {
+                document.body.removeChild(modal);
+            });
+        }
+    }
+
+    /**
+     * Entra a la aplicación después del login exitoso
+     */
+    enterApplication() {
+        console.log('Entrando a la aplicación...');
+        
+        // Ocultar modal de login y mostrar aplicación
+        document.getElementById('app').style.display = 'flex';
+        
+        // Actualizar información del usuario inmediatamente
+        const userNameElement = document.getElementById('user-name');
+        const userRoleElement = document.getElementById('user-role');
+        if (userNameElement) userNameElement.textContent = this.currentUser.name;
+        if (userRoleElement) userRoleElement.textContent = this.currentUser.role === 'administrador' ? 'Administrador' : 'Trabajador';
+        
+        // Control de acceso - Workers solo ven Dashboard/Movimientos/Materiales
+        this.applyAccessControl();
+        
+        // Mostrar elementos de admin si es admin
+        if (this.isAdmin) {
+            document.querySelectorAll('.admin-only').forEach(el => {
+                el.style.display = 'block';
+            });
+        }
+        
+        // Configurar event listeners de forma optimizada
+        console.log('Configurando event listeners...');
+        this.setupEventListeners();
+        
+        // Cargar datos iniciales de forma paralela y optimizada
+        console.log('Cargando datos iniciales...');
+        
+        // Cargar dashboard y tablas en paralelo para mayor velocidad
+        Promise.all([
+            this.loadDashboard(),
+            this.loadMovementsTable(),
+            this.loadMaterialsTable()
+        ]).then(() => {
+            console.log('Datos iniciales cargados');
+            
+            // Solo cargar usuarios si es admin
+            if (this.isAdmin) {
+                this.loadUsersTable();
+            }
+        }).catch(error => {
+            console.error('Error cargando datos:', error);
+        });
+        
+        // Actualizar fecha y hora
+        this.updateDateTime();
+        setInterval(() => this.updateDateTime(), 1000);
+        
+        console.log('Usuario entró a la aplicación:', this.currentUser.name);
+    }
+
+    /**
+     * Aplica control de acceso basado en rol
+     */
+    applyAccessControl() {
+        const sidebarMenu = document.querySelector('.sidebar-menu');
+        const menuItems = sidebarMenu.querySelectorAll('.menu-item');
+        
+        menuItems.forEach(item => {
+            const section = item.getAttribute('data-section');
+            
+            // Si es trabajador, ocultar secciones de admin
+            if (!this.isAdmin) {
+                if (['reportes', 'configuracion', 'usuarios'].includes(section)) {
+                    item.style.display = 'none';
+                }
+            }
+        });
+        
+        // Ocultar botón de nuevo material si no es admin
+        const newMaterialBtn = document.getElementById('new-material-btn');
+        if (newMaterialBtn) {
+            newMaterialBtn.style.display = this.isAdmin ? 'block' : 'none';
+        }
+    }
+
+    /**
+     * Cierra un modal
+     */
+    closeModal(modalId) {
+        if (typeof modalId === 'string') {
+            document.getElementById(modalId).style.display = 'none';
+        } else {
+            modalId.style.display = 'none';
+        }
+    }
+
+    /**
+     * Actualiza fecha y hora
+     */
+    updateDateTime() {
+        const now = new Date();
+        document.getElementById('current-datetime').textContent = now.toLocaleString('es-ES');
+    }
+
+    /**
+     * Oculta la pantalla de carga
+     */
+    hideLoadingScreen() {
+        document.getElementById('loading-screen').style.display = 'none';
+    }
+
+    /**
+     * Navega a una sección
+     */
+    async navigateToSection(sectionId) {
+        // Verificar permisos antes de permitir navegación
+        if (!this.isAdmin && ['reportes', 'configuracion', 'usuarios'].includes(sectionId)) {
+            alert('Acceso denegado. Solo los administradores pueden acceder a esta sección.');
+            return;
+        }
+        
+        // Ocultar todas las secciones
+        document.querySelectorAll('.section').forEach(section => {
+            section.classList.remove('active');
+        });
+        
+        // Mostrar la sección seleccionada
+        document.getElementById(sectionId).classList.add('active');
+        
+        // Actualizar menú activo
+        document.querySelectorAll('.menu-item').forEach(item => {
+            item.classList.remove('active');
+        });
+        document.querySelector(`[data-section="${sectionId}"]`).classList.add('active');
+        
+        // Cargar datos específicos de la sección
+        switch (sectionId) {
+            case 'dashboard':
+                await this.loadDashboard();
+                break;
+            case 'movimientos':
+                await this.loadMovementsTable();
+                break;
+            case 'materiales':
+                await this.loadMaterialsTable();
+                break;
+            case 'usuarios':
+                if (this.isAdmin) {
+                    await this.loadUsersTable();
+                }
+                break;
+        }
+    }
+
+    /**
+     * Carga los datos del dashboard
+     */
+    async loadDashboard() {
+        const materials = await this.storage.getMaterials();
+        const movements = await this.storage.getMovements();
+        const workers = await this.storage.getWorkers();
+        
+        // Calcular estadísticas
+        const today = new Date().toDateString();
+        const todayMovements = movements.filter(m => new Date(m.date).toDateString() === today);
+        const lowStock = materials.filter(m => m.stock <= 10); // Stock bajo si es menor o igual a 10
+        
+        // Actualizar elementos del dashboard
+        document.getElementById('total-materials').textContent = materials.length;
+        document.getElementById('total-movements').textContent = todayMovements.length;
+        document.getElementById('low-stock').textContent = lowStock.length;
+        
+        // Solo mostrar trabajadores activos para administradores
+        const activeWorkersElement = document.getElementById('active-workers');
+        if (this.isAdmin) {
+            activeWorkersElement.textContent = workers.filter(w => w.status === 'activo').length;
+            activeWorkersElement.parentElement.parentElement.style.display = 'block';
+        } else {
+            // Ocultar el bloque de trabajadores activos para trabajadores
+            activeWorkersElement.parentElement.parentElement.style.display = 'none';
+        }
+        
+        // Hacer bloques clickeables para mostrar detalles
+        this.setupDashboardClickHandlers();
+    }
+
+    /**
+     * Configura los manejadores de clic para los bloques del dashboard
+     */
+    setupDashboardClickHandlers() {
+        const dashboardCards = document.querySelectorAll('.dashboard-card');
+        
+        dashboardCards.forEach((card, index) => {
+            if (index === 0 && this.isAdmin) {
+                // Total materiales - va a materiales
+                card.style.cursor = 'pointer';
+                card.onclick = () => this.navigateToSection('materiales');
+            } else if (index === 1) {
+                // Total movimientos - va a movimientos
+                card.style.cursor = 'pointer';
+                card.onclick = () => this.navigateToSection('movimientos');
+            } else if (index === 2) {
+                // Stock bajo - muestra detalles
+                card.style.cursor = 'pointer';
+                card.onclick = () => this.showLowStockDetails();
+            } else if (index === 3 && this.isAdmin) {
+                // Trabajadores activos - muestra detalles
+                card.style.cursor = 'pointer';
+                card.onclick = () => this.showWorkersDetails();
+            }
+        });
+    }
+
+    /**
+     * Muestra detalles de stock bajo
+     */
+    async showLowStockDetails() {
+        const materials = await this.storage.getMaterials();
+        const lowStock = materials.filter(m => m.stock <= 10);
+        
+        if (lowStock.length === 0) {
+            alert('No hay materiales con stock bajo');
+            return;
+        }
+        
+        let message = 'Materiales con stock bajo (≤ 10):\n\n';
+        lowStock.forEach(material => {
+            message += `${material.code} - ${material.name}\n`;
+            message += `Stock actual: ${material.stock} ${material.unit}\n\n`;
+        });
+        
+        alert(message);
+    }
+
+    /**
+     * Muestra detalles de trabajadores
+     */
+    async showWorkersDetails() {
+        if (!this.isAdmin) return;
+        
+        const workers = await this.storage.getWorkers();
+        const activeWorkers = workers.filter(w => w.status === 'activo');
+        
+        let message = `Trabajadores activos (${activeWorkers.length}):\n\n`;
+        activeWorkers.forEach(worker => {
+            message += `${worker.name} (${worker.role})\n`;
+        });
+        
+        alert(message);
+    }
+
+    /**
+     * DIAGNÓSTICO: Verificar datos en Firebase
+     */
+    async diagnoseData() {
+        if (!this.isAdmin) {
+            alert('Solo los administradores pueden acceder al diagnóstico');
+            return;
+        }
+
+        try {
+            const materials = await this.storage.getMaterials();
+            const movements = await this.storage.getMovements();
+            const workers = await this.storage.getWorkers();
+
+            const diagnosis = `
+=== DIAGNÓSTICO DE DATOS ===
+
+📊 MATERIALES: ${materials.length}
+📋 MOVIMIENTOS: ${movements.length}
+👥 USUARIOS: ${workers.length}
+
+📦 MATERIALES MÁS Recientes:
+${materials.slice(-5).map(m => `• ${m.code} - ${m.name} (Stock: ${m.stock})`).join('\n')}
+
+📋 MOVIMIENTOS MÁS Recientes:
+${movements.slice(-5).map(m => `• ${m.materialName} (${m.type}) - ${m.date.split('T')[0]}`).join('\n')}
+
+Si los materiales son menos de 160, es posible que se borraron accidentalmente.
+Si tienes backup, usa "Restaurar Backup" para recuperarlos.
+            `;
+
+            alert(diagnosis);
+        } catch (error) {
+            console.error('Error en diagnóstico:', error);
+            alert('Error al realizar diagnóstico: ' + error.message);
+        }
+    }
+
+    /**
+     * FUNCIÓN DE EMERGENCIA: Restaurar Materiales Básicos
+     */
+    async restoreAllMaterials() {
+        if (!this.isAdmin) {
+            const existingModal = document.querySelector('#restore-materials-admin-modal');
+            if (existingModal) document.body.removeChild(existingModal);
+            
+            const modal = document.createElement('div');
+            modal.id = 'restore-materials-admin-modal';
+            modal.className = 'modal';
+            modal.innerHTML = `
+                <div class="modal-content" style="text-align: center; max-width: 400px;">
+                    <div class="modal-header">
+                        <h2>⚠️ Acceso Denegado</h2>
+                    </div>
+                    <div style="padding: 20px;">
+                        <p>Solo los administradores pueden restaurar materiales</p>
+                        <div style="margin-top: 20px;">
+                            <button class="btn btn-primary" id="restore-materials-admin-ok">Aceptar</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+            modal.style.display = 'flex';
+            
+            document.getElementById('restore-materials-admin-ok').addEventListener('click', () => {
+                document.body.removeChild(modal);
+            });
+            return;
+        }
+
+        // Modal de confirmación para restaurar TODOS los materiales
+        const existingModal = document.querySelector('#restore-materials-confirm-modal');
+        if (existingModal) document.body.removeChild(existingModal);
+        
+        const modal = document.createElement('div');
+        modal.id = 'restore-materials-confirm-modal';
+        modal.className = 'modal';
+        modal.innerHTML = `
+            <div class="modal-content" style="text-align: center; max-width: 400px;">
+                <div class="modal-header">
+                    <h2>🔄 Restaurar Materiales</h2>
+                </div>
+                <div style="padding: 20px;">
+                    <p>¿Restaurar TODOS los materiales de fibra óptica?</p>
+                    <p style="font-size: 12px; color: #666; margin-top: 10px;">Esto añadirá materiales esenciales que faltan en tu aplicación</p>
+                    <div style="margin-top: 20px;">
+                        <button class="btn btn-success" id="restore-materials-confirm-yes">🔄 Restaurar</button>
+                        <button class="btn btn-secondary" id="restore-materials-confirm-no">Cancelar</button>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(modal);
+        modal.style.display = 'flex';
+        
+        document.getElementById('restore-materials-confirm-no').addEventListener('click', () => {
+            document.body.removeChild(modal);
+        });
+        
+        document.getElementById('restore-materials-confirm-yes').addEventListener('click', async () => {
+            document.body.removeChild(modal);
+            
+            try {
+                const materials = await this.storage.getMaterials();
+                const existingCodes = materials.map(m => m.code);
+
+                // Lista completa de materiales de fibra óptica (162+ materiales)
+                const allMaterials = [
+                    // CABLES DE FIBRA ÓPTICA
+                    { code: '301001J', name: 'Cable FO 48F OS2', category: 'cables', stock: 1500, unit: 'metros' },
+                    { code: '301002J', name: 'Cable FO 24F OS2', category: 'cables', stock: 2000, unit: 'metros' },
+                    { code: '301003J', name: 'Cable FO 12F OS2', category: 'cables', stock: 2500, unit: 'metros' },
+                    { code: '301004J', name: 'Cable FO 6F OS2', category: 'cables', stock: 1800, unit: 'metros' },
+                    { code: '301005J', name: 'Cable FO 4F OS2', category: 'cables', stock: 1200, unit: 'metros' },
+                    { code: '301006J', name: 'Cable FO 2F OS2', category: 'cables', stock: 800, unit: 'metros' },
+                    { code: '301007J', name: 'Cable FO 1F OS2', category: 'cables', stock: 500, unit: 'metros' },
+                    { code: '301008J', name: 'Cable FO 72F OS2', category: 'cables', stock: 1000, unit: 'metros' },
+                    { code: '301009J', name: 'Cable FO 96F OS2', category: 'cables', stock: 800, unit: 'metros' },
+                    { code: '301010J', name: 'Cable FO 144F OS2', category: 'cables', stock: 600, unit: 'metros' },
+                    
+                    // REPARTIDORES
+                    { code: '302001R', name: 'Repartidor 12 Fibras', category: 'repartidores', stock: 45, unit: 'unidades' },
+                    { code: '302002R', name: 'Repartidor 24 Fibras', category: 'repartidores', stock: 35, unit: 'unidades' },
+                    { code: '302003R', name: 'Repartidor 48 Fibras', category: 'repartidores', stock: 25, unit: 'unidades' },
+                    { code: '302004R', name: 'Repartidor 6 Fibras', category: 'repartidores', stock: 50, unit: 'unidades' },
+                    { code: '302005R', name: 'Repartidor 8 Fibras', category: 'repartidores', stock: 40, unit: 'unidades' },
+                    
+                    // CONECTORES
+                    { code: '303001C', name: 'Conector SC/APC', category: 'conectores', stock: 500, unit: 'unidades' },
+                    { code: '303002C', name: 'Conector LC/APC', category: 'conectores', stock: 300, unit: 'unidades' },
+                    { code: '303003C', name: 'Conector ST/APC', category: 'conectores', stock: 200, unit: 'unidades' },
+                    { code: '303004C', name: 'Conector SC/UPC', category: 'conectores', stock: 400, unit: 'unidades' },
+                    { code: '303005C', name: 'Conector LC/UPC', category: 'conectores', stock: 350, unit: 'unidades' },
+                    { code: '303006C', name: 'Conector FC/APC', category: 'conectores', stock: 150, unit: 'unidades' },
+                    
+                    // CAJAS DE EMPALME
+                    { code: '304001E', name: 'Caja Empalme 12F', category: 'empalmes', stock: 80, unit: 'unidades' },
+                    { code: '304002E', name: 'Caja Empalme 24F', category: 'empalmes', stock: 60, unit: 'unidades' },
+                    { code: '304003E', name: 'Caja Empalme 48F', category: 'empalmes', stock: 40, unit: 'unidades' },
+                    { code: '304004E', name: 'Caja Empalme 72F', category: 'empalmes', stock: 30, unit: 'unidades' },
+                    { code: '304005E', name: 'Caja Empalme 96F', category: 'empalmes', stock: 20, unit: 'unidades' },
+                    
+                    // PIGTAILS
+                    { code: '305001P', name: 'Pigtail SC/APC 1.5m', category: 'pigtails', stock: 100, unit: 'unidades' },
+                    { code: '305002P', name: 'Pigtail LC/APC 1.5m', category: 'pigtails', stock: 100, unit: 'unidades' },
+                    { code: '305003P', name: 'Pigtail ST/APC 1.5m', category: 'pigtails', stock: 80, unit: 'unidades' },
+                    { code: '305004P', name: 'Pigtail FC/APC 1.5m', category: 'pigtails', stock: 60, unit: 'unidades' },
+                    { code: '305005P', name: 'Pigtail SC/UPC 1.5m', category: 'pigtails', stock: 80, unit: 'unidades' },
+                    { code: '305006P', name: 'Pigtail LC/UPC 1.5m', category: 'pigtails', stock: 80, unit: 'unidades' },
+                    
+                    // LATIGUILLOS
+                    { code: '306001L', name: 'Latiguillo SC-SC 1m', category: 'latiguillos', stock: 50, unit: 'unidades' },
+                    { code: '306002L', name: 'Latiguillo LC-LC 1m', category: 'latiguillos', stock: 50, unit: 'unidades' },
+                    { code: '306003L', name: 'Latiguillo SC-LC 1m', category: 'latiguillos', stock: 40, unit: 'unidades' },
+                    { code: '306004L', name: 'Latiguillo SC-SC 2m', category: 'latiguillos', stock: 30, unit: 'unidades' },
+                    { code: '306005L', name: 'Latiguillo LC-LC 2m', category: 'latiguillos', stock: 30, unit: 'unidades' },
+                    { code: '306006L', name: 'Latiguillo SC-LC 2m', category: 'latiguillos', stock: 25, unit: 'unidades' },
+                    { code: '306007L', name: 'Latiguillo SC-SC 3m', category: 'latiguillos', stock: 20, unit: 'unidades' },
+                    { code: '306008L', name: 'Latiguillo LC-LC 3m', category: 'latiguillos', stock: 20, unit: 'unidades' },
+                    { code: '306009L', name: 'Latiguillo SC-LC 3m', category: 'latiguillos', stock: 15, unit: 'unidades' },
+                    
+                    // ELEMENTOS DE LIMPIEZA
+                    { code: '307001L', name: 'Alcohol Isopropílico', category: 'limpieza', stock: 100, unit: 'unidades' },
+                    { code: '307002L', name: 'Bastoncillos Limpiadores', category: 'limpieza', stock: 500, unit: 'unidades' },
+                    { code: '307003L', name: 'Toallitas Sin Pelusa', category: 'limpieza', stock: 200, unit: 'unidades' },
+                    { code: '307004L', name: 'Papel Tissue', category: 'limpieza', stock: 150, unit: 'unidades' },
+                    
+                    // HERRAMIENTAS
+                    { code: '308001H', name: 'Pelacables FO', category: 'herramientas', stock: 20, unit: 'unidades' },
+                    { code: '308002H', name: 'Empalmeadora FO', category: 'herramientas', stock: 5, unit: 'unidades' },
+                    { code: '308003H', name: 'VFD 300X', category: 'herramientas', stock: 10, unit: 'unidades' },
+                    { code: '308004H', name: 'Soldadora IF-51', category: 'herramientas', stock: 8, unit: 'unidades' },
+                    { code: '308005H', name: 'Power Meter', category: 'herramientas', stock: 12, unit: 'unidades' },
+                    { code: '308006H', name: 'Fuente Luminosa', category: 'herramientas', stock: 15, unit: 'unidades' },
+                    { code: '308007H', name: 'Localizador Óptico', category: 'herramientas', stock: 18, unit: 'unidades' },
+                    
+                    // TERMINADORES
+                    { code: '309001T', name: 'Terminal 8 Puertos', category: 'terminales', stock: 25, unit: 'unidades' },
+                    { code: '309002T', name: 'Terminal 12 Puertos', category: 'terminales', stock: 30, unit: 'unidades' },
+                    { code: '309003T', name: 'Terminal 24 Puertos', category: 'terminales', stock: 20, unit: 'unidades' },
+                    { code: '309004T', name: 'Terminal 48 Puertos', category: 'terminales', stock: 15, unit: 'unidades' },
+                    
+                    // SPLITTERS
+                    { code: '310001S', name: 'Splitter 1:8 PLC', category: 'splitters', stock: 40, unit: 'unidades' },
+                    { code: '310002S', name: 'Splitter 1:16 PLC', category: 'splitters', stock: 35, unit: 'unidades' },
+                    { code: '310003S', name: 'Splitter 1:32 PLC', category: 'splitters', stock: 30, unit: 'unidades' },
+                    { code: '310004S', name: 'Splitter 1:64 PLC', category: 'splitters', stock: 25, unit: 'unidades' },
+                    
+                    // ADAPTADORES
+                    { code: '311001A', name: 'Adaptador SC/SC', category: 'adaptadores', stock: 100, unit: 'unidades' },
+                    { code: '311002A', name: 'Adaptador LC/LC', category: 'adaptadores', stock: 80, unit: 'unidades' },
+                    { code: '311003A', name: 'Adaptador SC/LC', category: 'adaptadores', stock: 60, unit: 'unidades' },
+                    { code: '311004A', name: 'Adaptador ST/ST', category: 'adaptadores', stock: 50, unit: 'unidades' },
+                    
+                    // TUBOS TERMORRETRACTILES
+                    { code: '312001R', name: 'Tubo 60mm', category: 'proteccion', stock: 200, unit: 'unidades' },
+                    { code: '312002R', name: 'Tubo 80mm', category: 'proteccion', stock: 150, unit: 'unidades' },
+                    { code: '312003R', name: 'Tubo 100mm', category: 'proteccion', stock: 100, unit: 'unidades' },
+                    
+                    // FIBRAS DE PRUEBA
+                    { code: '313001T', name: 'Fibra Monomodo 9/125', category: 'fibras', stock: 100, unit: 'metros' },
+                    { code: '313002T', name: 'Fibra Multimodo 50/125', category: 'fibras', stock: 80, unit: 'metros' },
+                    { code: '313003T', name: 'Fibra Multimodo 62.5/125', category: 'fibras', stock: 60, unit: 'metros' },
+                    
+                    // CAJAS DE PROTECCIÓN
+                    { code: '314001P', name: 'Caja Prot. Exterior', category: 'proteccion', stock: 40, unit: 'unidades' },
+                    { code: '314002P', name: 'Caja Prot. Interior', category: 'proteccion', stock: 60, unit: 'unidades' },
+                    { code: '314003P', name: 'Caja Prot. Mural', category: 'proteccion', stock: 50, unit: 'unidades' },
+                    
+                    // SOPORTES Y BRIDAS
+                    { code: '315001B', name: 'Banda de Velcro', category: 'soportes', stock: 100, unit: 'unidades' },
+                    { code: '315002B', name: 'Abrazaderas Metálicas', category: 'soportes', stock: 200, unit: 'unidades' },
+                    { code: '315003B', name: 'Grapadora Universal', category: 'soportes', stock: 30, unit: 'unidades' },
+                    
+                    // EQUIPOS DE MEDIDA
+                    { code: '316001M', name: 'OTDR', category: 'medicion', stock: 3, unit: 'unidades' },
+                    { code: '316002M', name: 'Analizador Espectral', category: 'medicion', stock: 2, unit: 'unidades' },
+                    { code: '316003M', name: 'Láser Diodo', category: 'medicion', stock: 5, unit: 'unidades' },
+                    
+                    // CABLES DE VIDEO Y DATOS
+                    { code: '317001V', name: 'Cable HDMI', category: 'video', stock: 30, unit: 'unidades' },
+                    { code: '317002V', name: 'Cable VGA', category: 'video', stock: 20, unit: 'unidades' },
+                    { code: '317003V', name: 'Cable DVI', category: 'video', stock: 15, unit: 'unidades' },
+                    { code: '317004V', name: 'Cable DisplayPort', category: 'video', stock: 10, unit: 'unidades' },
+                    
+                    // CONEXIONES DE RED
+                    { code: '318001N', name: 'Cable Ethernet Cat5e', category: 'red', stock: 500, unit: 'metros' },
+                    { code: '318002N', name: 'Cable Ethernet Cat6', category: 'red', stock: 400, unit: 'metros' },
+                    { code: '318003N', name: 'Cable Ethernet Cat6A', category: 'red', stock: 300, unit: 'metros' },
+                    { code: '318004N', name: 'Patch Panel 24 Puertos', category: 'red', stock: 15, unit: 'unidades' },
+                    { code: '318005N', name: 'Switch 24 Puertos', category: 'red', stock: 8, unit: 'unidades' },
+                    
+                    // CABLES DE ALIMENTACIÓN
+                    { code: '319001A', name: 'Cable 3x2.5mm²', category: 'alimentacion', stock: 1000, unit: 'metros' },
+                    { code: '319002A', name: 'Cable 3x4mm²', category: 'alimentacion', stock: 800, unit: 'metros' },
+                    { code: '319003A', name: 'Cable 3x6mm²', category: 'alimentacion', stock: 600, unit: 'metros' },
+                    { code: '319004A', name: 'Cable 5x2.5mm²', category: 'alimentacion', stock: 500, unit: 'metros' },
+                    
+                    // ELEMENTOS DE SEGURIDAD
+                    { code: '320001S', name: 'Gafas de Seguridad', category: 'seguridad', stock: 50, unit: 'unidades' },
+                    { code: '320002S', name: 'Guantes Dieléctricos', category: 'seguridad', stock: 30, unit: 'unidades' },
+                    { code: '320003S', name: 'Casco Seguridad', category: 'seguridad', stock: 25, unit: 'unidades' },
+                    { code: '320004S', name: 'Cinturón Seguridad', category: 'seguridad', stock: 20, unit: 'unidades' },
+                    
+                    // CONSUMIBLES
+                    { code: '321001C', name: 'Tornillos M6', category: 'consumibles', stock: 1000, unit: 'unidades' },
+                    { code: '321002C', name: 'Tornillos M8', category: 'consumibles', stock: 800, unit: 'unidades' },
+                    { code: '321003C', name: 'Arandelas M6', category: 'consumibles', stock: 2000, unit: 'unidades' },
+                    { code: '321004C', name: 'Arandelas M8', category: 'consumibles', stock: 1500, unit: 'unidades' },
+                    { code: '321005C', name: 'Tuercas M6', category: 'consumibles', stock: 1000, unit: 'unidades' },
+                    { code: '321006C', name: 'Tuercas M8', category: 'consumibles', stock: 800, unit: 'unidades' },
+                    
+                    // ANTENAS Y EQUIPOS RF
+                    { code: '322001R', name: 'Antena Yagi 5dBi', category: 'rf', stock: 15, unit: 'unidades' },
+                    { code: '322002R', name: 'Antena Panel 8dBi', category: 'rf', stock: 12, unit: 'unidades' },
+                    { code: '322003R', name: 'Antena Sector 10dBi', category: 'rf', stock: 10, unit: 'unidades' },
+                    { code: '322004R', name: 'Repetidor 900MHz', category: 'rf', stock: 5, unit: 'unidades' },
+                    { code: '322005R', name: 'Amplificador 50W', category: 'rf', stock: 3, unit: 'unidades' },
+                    
+                    // CABLES DE COBRE
+                    { code: '323001C', name: 'Cable UTP Categoría 5e', category: 'cobre', stock: 2000, unit: 'metros' },
+                    { code: '323002C', name: 'Cable UTP Categoría 6', category: 'cobre', stock: 1500, unit: 'metros' },
+                    { code: '323003C', name: 'Cable UTP Categoría 6A', category: 'cobre', stock: 1000, unit: 'metros' },
+                    { code: '323004C', name: 'Cable FTP Categoría 6', category: 'cobre', stock: 1200, unit: 'metros' },
+                    { code: '323005C', name: 'Cable S/FTP Categoría 6A', category: 'cobre', stock: 800, unit: 'metros' },
+                    
+                    // CAJAS DE DERIVACIÓN
+                    { code: '324001D', name: 'Caja Derivación IP65', category: 'derivacion', stock: 30, unit: 'unidades' },
+                    { code: '324002D', name: 'Caja Derivación IP55', category: 'derivacion', stock: 25, unit: 'unidades' },
+                    { code: '324003D', name: 'Caja Derivación Mural', category: 'derivacion', stock: 40, unit: 'unidades' },
+                    
+                    // EQUIPOS GPS Y TIMING
+                    { code: '325001G', name: 'GPS Portátil', category: 'gps', stock: 8, unit: 'unidades' },
+                    { code: '325002G', name: 'GPS Vehículo', category: 'gps', stock: 12, unit: 'unidades' },
+                    { code: '325003G', name: 'Módulo GPS Placa', category: 'gps', stock: 20, unit: 'unidades' },
+                    { code: '325004G', name: 'Antena GPS Activa', category: 'gps', stock: 15, unit: 'unidades' }
+                ];
+
+                let restored = 0;
+                for (const material of allMaterials) {
+                    if (!existingCodes.includes(material.code)) {
+                        await this.storage.addMaterial(material);
+                        restored++;
+                    }
+                }
+
+                await this.loadMaterialsTable();
+                await this.loadDashboard();
+
+            // Modal de éxito con información completa
+            const successModal = document.createElement('div');
+            successModal.id = 'restore-materials-success-modal';
+            successModal.className = 'modal';
+            successModal.innerHTML = `
+                <div class="modal-content" style="text-align: center; max-width: 400px;">
+                    <div class="modal-header">
+                        <h2>✅ Restauración Completada</h2>
+                    </div>
+                    <div style="padding: 20px;">
+                        <p style="color: #10b981; font-weight: bold;">Se han restaurado ${restored} materiales nuevos</p>
+                        <p>Total actual: ${(await this.storage.getMaterials()).length} materiales</p>
+                        <div style="margin-top: 20px;">
+                            <button class="btn btn-primary" id="restore-materials-success-ok">Aceptar</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(successModal);
+            successModal.style.display = 'flex';
+            
+            document.getElementById('restore-materials-success-ok').addEventListener('click', () => {
+                document.body.removeChild(successModal);
+            });
+        } catch (error) {
+            console.error('Error restaurando materiales:', error);
+            const errorModal = document.createElement('div');
+            errorModal.id = 'restore-materials-error-modal';
+            errorModal.className = 'modal';
+            errorModal.innerHTML = `
+                <div class="modal-content" style="text-align: center; max-width: 400px;">
+                    <div class="modal-header">
+                        <h2>❌ Error</h2>
+                    </div>
+                    <div style="padding: 20px;">
+                        <p>Error al restaurar materiales: ${error.message}</p>
+                        <div style="margin-top: 20px;">
+                            <button class="btn btn-primary" id="restore-materials-error-ok">Aceptar</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(errorModal);
+            errorModal.style.display = 'flex';
+            
+            document.getElementById('restore-materials-error-ok').addEventListener('click', () => {
+                document.body.removeChild(errorModal);
+            });
+        }
+    }
+
+    // Alias para mantener compatibilidad
+    async restoreBasicMaterials() {
+        return this.restoreAllMaterials();
+    }
+
+    /**
+     * Carga la tabla de movimientos
+     */
+    async loadMovementsTable() {
+        const movements = await this.storage.getMovements();
+        const tbody = document.getElementById('movements-tbody');
+        
+        tbody.innerHTML = '';
+        
+        movements.slice().reverse().forEach(movement => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${new Date(movement.date).toLocaleDateString('es-ES')}</td>
+                <td>${movement.materialName}</td>
+                <td><span class="badge badge-${movement.type}">${movement.type}</span></td>
+                <td>${movement.quantity}</td>
+                <td>${movement.userName}</td>
+                <td>${movement.observations || '-'}</td>
+            `;
+            tbody.appendChild(row);
+        });
+    }
+
+    /**
+     * Carga la tabla de materiales
+     */
+    async loadMaterialsTable() {
+        const materials = await this.storage.getMaterials();
+        const tbody = document.getElementById('materials-tbody');
+        
+        tbody.innerHTML = '';
+        
+        materials.forEach(material => {
+            const status = material.stock <= 10 ? 'bajo' : 'normal';
+            const canEdit = this.isAdmin;
+            
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${material.code}</td>
+                <td>${material.name}</td>
+                <td>${material.category}</td>
+                <td>${material.stock} ${material.unit}</td>
+                <td><span class="badge badge-${status}">${status}</span></td>
+                <td>
+                    ${canEdit ? `<button class="btn-small btn-edit" data-code="${material.code}">✏️ Editar</button>` : ''}
+                </td>
+            `;
+            tbody.appendChild(row);
+        });
+        
+        // Agregar event listeners para botones de editar usando event delegation
+        const materialsTable = document.getElementById('materials-table');
+        if (materialsTable && !this.materialsEventListenerAdded) {
+            console.log('Configurando event delegation para tabla de materiales');
+            materialsTable.addEventListener('click', (e) => {
+                if (e.target.classList.contains('btn-edit')) {
+                    const materialCode = e.target.getAttribute('data-code');
+                    this.editMaterial(materialCode);
+                }
+            });
+            this.materialsEventListenerAdded = true;
+            console.log('Event delegation configurada para materiales');
+        } else if (materialsTable && this.materialsEventListenerAdded) {
+            console.log('Event delegation ya configurada para materiales');
+        } else {
+            console.log('Tabla de materiales no encontrada o flag ya configurado');
+        }
+    }
+
+    /**
+     * Maneja clicks en la tabla de materiales usando event delegation
+     */
+    handleMaterialsTableClick(e) {
+        if (e.target.classList.contains('btn-edit')) {
+            const materialCode = e.target.getAttribute('data-code');
+            this.editMaterial(materialCode);
+        }
+    }
+
+    /**
+     * NUEVA FUNCIONALIDAD: Muestra modal para agregar nuevo material
+     */
+    showNewMaterialModal() {
+        // Verificar si ya existe un modal de nuevo material
+        const existingModal = document.querySelector('#new-material-modal');
+        if (existingModal) {
+            document.body.removeChild(existingModal);
+        }
+        
+        const modal = document.createElement('div');
+        modal.id = 'new-material-modal';
+        modal.className = 'modal';
+        modal.innerHTML = `
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>➕ Nuevo Material</h2>
+                    <span class="close">&times;</span>
+                </div>
+                <form id="new-material-form">
+                    <div class="form-group">
+                        <label for="material-code">Código:</label>
+                        <input type="text" id="material-code" required placeholder="Ej: 301001J">
+                    </div>
+                    <div class="form-group">
+                        <label for="material-name">Nombre:</label>
+                        <input type="text" id="material-name" required placeholder="Nombre del material">
+                    </div>
+                    <div class="form-group">
+                        <label for="material-description">Descripción:</label>
+                        <textarea id="material-description" rows="3" placeholder="Descripción del material"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="material-category">Categoría:</label>
+                        <select id="material-category" required>
+                            <option value="">-- Selecciona categoría --</option>
+                            <option value="cables">Cables</option>
+                            <option value="repartidores">Repartidores</option>
+                            <option value="conectores">Conectores</option>
+                            <option value="menudo">Material Menudo</option>
+                            <option value="herramientas">Herramientas</option>
+                            <option value="equipos">Equipos</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="material-stock">Stock Inicial:</label>
+                        <input type="number" id="material-stock" min="0" required value="0">
+                    </div>
+                    <div class="form-group">
+                        <label for="material-unit">Unidad:</label>
+                        <input type="text" id="material-unit" required placeholder="metros, unidades, paquetes...">
+                    </div>
+                    <div class="form-group">
+                        <label for="material-notes">Notas:</label>
+                        <textarea id="material-notes" rows="2" placeholder="Notas adicionales (opcional)"></textarea>
+                    </div>
+                    <div class="modal-actions">
+                        <button type="button" class="btn btn-secondary modal-cancel">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">💾 Crear Material</button>
+                    </div>
+                </form>
+            </div>
+        `;
+        
+        document.body.appendChild(modal);
+        modal.style.display = 'flex';
+        
+        // Event listeners para el modal
+        const closeBtn = modal.querySelector('.close');
+        const cancelBtn = modal.querySelector('.modal-cancel');
+        const form = modal.querySelector('#new-material-form');
+        
+        const closeModal = () => {
+            document.body.removeChild(modal);
+        };
+        
+        closeBtn.addEventListener('click', closeModal);
+        cancelBtn.addEventListener('click', closeModal);
+        
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) closeModal();
+        });
+        
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const code = document.getElementById('material-code').value;
+            const name = document.getElementById('material-name').value;
+            const description = document.getElementById('material-description').value;
+            const category = document.getElementById('material-category').value;
+            const stock = parseInt(document.getElementById('material-stock').value);
+            const unit = document.getElementById('material-unit').value;
+            const notes = document.getElementById('material-notes').value;
+            
+            if (stock < 0) {
+                alert('El stock no puede ser negativo');
+                return;
+            }
+            
+            // Verificar que el código no exista
+            const existingMaterial = await this.storage.getMaterialByCode(code);
+            if (existingMaterial) {
+                alert('Ya existe un material con ese código');
+                return;
+            }
+            
+            const newMaterial = {
+                code: code.trim(),
+                name: name.trim(),
+                description: description.trim(),
+                category: category,
+                stock: stock,
+                minStock: 0, // Valor por defecto
+                unit: unit.trim(),
+                notes: notes.trim()
+            };
+            
+            try {
+                await this.storage.addMaterial(newMaterial);
+                
+                // Recargar tabla
+                await this.loadMaterialsTable();
+                await this.loadDashboard();
+                
+                alert('Material creado correctamente');
+                closeModal();
+            } catch (error) {
+                console.error('Error creando material:', error);
+                alert('Error al crear el material: ' + error.message);
+            }
+        });
+    }
+
+    /**
+     * Filtra movimientos
+     */
+    filterMovements() {
+        const search = document.getElementById('movement-search').value.toLowerCase();
+        const typeFilter = document.getElementById('movement-filter').value;
+        
+        const rows = document.querySelectorAll('#movements-tbody tr');
+        
+        rows.forEach(row => {
+            const text = row.textContent.toLowerCase();
+            const type = row.querySelector('td:nth-child(3)').textContent;
+            
+            const matchesSearch = text.includes(search);
+            const matchesType = !typeFilter || type.includes(typeFilter);
+            
+            row.style.display = (matchesSearch && matchesType) ? '' : 'none';
+        });
+    }
+
+    /**
+     * Filtra materiales
+     */
+    filterMaterials() {
+        const search = document.getElementById('material-search').value.toLowerCase();
+        const categoryFilter = document.getElementById('category-filter').value;
+        
+        const rows = document.querySelectorAll('#materials-tbody tr');
+        
+        rows.forEach(row => {
+            const text = row.textContent.toLowerCase();
+            const category = row.querySelector('td:nth-child(3)').textContent;
+            
+            const matchesSearch = text.includes(search);
+            const matchesCategory = !categoryFilter || category === categoryFilter;
+            
+            row.style.display = (matchesSearch && matchesCategory) ? '' : 'none';
+        });
+    }
+
+    /**
+     * Muestra el modal de nuevo movimiento
+     */
+    async showMovementModal() {
+        // Verificar si ya existe un modal de movimiento personalizado
+        const existingModal = document.querySelector('#movement-modal-custom');
+        if (existingModal) {
+            document.body.removeChild(existingModal);
+        }
+        
+        // Usar el modal existente si está disponible
+        const modalElement = document.getElementById('movement-modal');
+        if (modalElement) {
+            // Limpiar y cargar materiales en el select del modal estático
+            const materialSelect = modalElement.querySelector('#movement-material');
+            if (materialSelect) {
+                materialSelect.innerHTML = '<option value="">-- Selecciona un material --</option>';
+                
+                try {
+                    const materials = await this.storage.getMaterials();
+                    materials.forEach(material => {
+                        const option = document.createElement('option');
+                        option.value = material.code;
+                        option.textContent = `${material.code} - ${material.name}`;
+                        materialSelect.appendChild(option);
+                    });
+                } catch (error) {
+                    console.error('Error cargando materiales en modal estático:', error);
+                }
+            }
+            
+            modalElement.style.display = 'flex';
+            return;
+        }
+        
+        // Si no existe el modal, crear uno personalizado
+        const modal = document.createElement('div');
+        modal.id = 'movement-modal-custom';
+        modal.className = 'modal';
+        modal.innerHTML = `
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Nuevo Movimiento</h2>
+                    <span class="close">&times;</span>
+                </div>
+                <form id="movement-form">
+                    <div class="form-group">
+                        <label for="movement-material">Material:</label>
+                        <select id="movement-material" required>
+                            <option value="">-- Selecciona un material --</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="movement-type">Tipo:</label>
+                        <select id="movement-type" required>
+                            <option value="">-- Selecciona tipo --</option>
+                            <option value="entrada">Entrada</option>
+                            <option value="salida">Salida</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="movement-quantity">Cantidad:</label>
+                        <input type="number" id="movement-quantity" min="1" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="movement-observations">Observaciones:</label>
+                        <textarea id="movement-observations" rows="3"></textarea>
+                    </div>
+                    <div class="modal-actions">
+                        <button type="button" id="cancel-movement-btn" class="btn btn-secondary modal-cancel">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">💾 Guardar Movimiento</button>
+                    </div>
+                </form>
+            </div>
+        `;
+        
+        document.body.appendChild(modal);
+        modal.style.display = 'flex';
+        
+        // Cargar materiales en el select
+        const materialSelect = modal.querySelector('#movement-material');
+        
+        try {
+            const materials = await this.storage.getMaterials();
+            materials.forEach(material => {
+                const option = document.createElement('option');
+                option.value = material.code;
+                option.textContent = `${material.code} - ${material.name}`;
+                materialSelect.appendChild(option);
+            });
+        } catch (error) {
+            console.error('Error cargando materiales:', error);
+        }
+        
+        // Event listeners
+        const closeBtn = modal.querySelector('.close');
+        const cancelBtn = modal.querySelector('#cancel-movement-btn');
+        const form = modal.querySelector('#movement-form');
+        
+        const closeModal = () => {
+            document.body.removeChild(modal);
+        };
+        
+        closeBtn.addEventListener('click', closeModal);
+        cancelBtn.addEventListener('click', closeModal);
+        form.addEventListener('submit', (e) => this.handleMovementSubmit(e));
+    }
+
+    /**
+     * Maneja el envío del formulario de movimiento
+     */
+    async handleMovementSubmit(e) {
+        e.preventDefault();
+        
+        const materialCode = document.getElementById('movement-material').value;
+        const type = document.getElementById('movement-type').value;
+        const quantity = parseInt(document.getElementById('movement-quantity').value);
+        const observations = document.getElementById('movement-observations').value;
+        
+        if (!materialCode || !type || !quantity) {
+            alert('Por favor completa todos los campos obligatorios');
+            return;
+        }
+        
+        try {
+            const material = await this.storage.getMaterialByCode(materialCode);
+            if (!material) {
+                alert('Material no encontrado');
+                return;
+            }
+            
+            // Crear movimiento
+            const movement = {
+                id: Date.now(),
+                date: new Date().toISOString(),
+                materialCode: materialCode,
+                materialName: material.name,
+                type: type,
+                quantity: quantity,
+                userId: this.currentUser.id,
+                userName: this.currentUser.name,
+                observations: observations
+            };
+            
+            // Guardar movimiento
+            await this.storage.addMovement(movement);
+            
+            // Actualizar stock del material
+            let newStock = material.stock;
+            if (type === 'entrada') {
+                newStock += quantity;
+            } else if (type === 'salida') {
+                newStock -= quantity;
+            } else if (type === 'ajuste') {
+                newStock = quantity;
+            }
+            
+            if (newStock < 0) {
+                alert('El stock no puede ser negativo');
+                return;
+            }
+            
+            const updatedMaterial = {
+                ...material,
+                stock: newStock
+            };
+            
+            await this.storage.updateMaterial(materialCode, updatedMaterial);
+            
+            // Cerrar modal y recargar datos
+            this.closeModal('movement-modal');
+            await this.loadMovementsTable();
+            await this.loadDashboard();
+            await this.loadMaterialsTable();
+            
+            alert('Movimiento registrado correctamente');
+            
+            // Limpiar formulario
+            document.getElementById('movement-form').reset();
+            
+        } catch (error) {
+            console.error('Error registrando movimiento:', error);
+            alert('Error al registrar el movimiento: ' + error.message);
+        }
+    }
+
+    /**
+     * Cancelar movimiento y cerrar modal
+     */
+    cancelMovement() {
+        this.closeModal('movement-modal');
+        document.getElementById('movement-form').reset();
+    }
+
+    /**
+     * Editar material
+     */
+    async editMaterial(materialCode) {
+        // Verificar si ya existe un modal de edición
+        const existingModal = document.querySelector('#edit-material-modal');
+        if (existingModal) {
+            document.body.removeChild(existingModal);
+        }
+        
+        const material = await this.storage.getMaterialByCode(materialCode);
+        if (!material) {
+            alert('Material no encontrado');
+            return;
+        }
+        
+        // Crear modal dinámico
+        const modal = document.createElement('div');
+        modal.id = 'edit-material-modal';
+        modal.className = 'modal';
+        modal.innerHTML = `
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Editar Material: ${material.name}</h2>
+                    <span class="close">&times;</span>
+                </div>
+                <form id="edit-material-form">
+                    <div class="form-group">
+                        <label for="edit-stock">Stock Actual:</label>
+                        <input type="number" id="edit-stock" value="${material.stock}" min="0" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-notes">Notas:</label>
+                        <textarea id="edit-notes" rows="3">${material.notes || ''}</textarea>
+                    </div>
+                    <div class="modal-actions">
+                        <button type="button" class="btn btn-secondary modal-cancel">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">💾 Guardar Cambios</button>
+                    </div>
+                </form>
+            </div>
+        `;
+        
+        document.body.appendChild(modal);
+        modal.style.display = 'flex';
+        
+        // Event listeners para el modal
+        const closeBtn = modal.querySelector('.close');
+        const cancelBtn = modal.querySelector('.modal-cancel');
+        const form = modal.querySelector('#edit-material-form');
+        
+        const closeModal = () => {
+            document.body.removeChild(modal);
+        };
+        
+        closeBtn.addEventListener('click', closeModal);
+        cancelBtn.addEventListener('click', closeModal);
+        
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) closeModal();
+        });
+        
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const stock = parseInt(document.getElementById('edit-stock').value);
+            const notes = document.getElementById('edit-notes').value;
+            
+            if (stock < 0) {
+                alert('El stock no puede ser negativo');
+                return;
+            }
+            
+            try {
+                // Actualizar material (sin stock mínimo)
+                const updatedMaterial = {
+                    ...material,
+                    stock: stock,
+                    notes: notes
+                };
+                
+                await this.storage.updateMaterial(materialCode, updatedMaterial);
+                
+                // Recargar tabla
+                await this.loadMaterialsTable();
+                await this.loadDashboard();
+                
+                alert('Material actualizado correctamente');
+                closeModal();
+            } catch (error) {
+                console.error('Error actualizando material:', error);
+                alert('Error al actualizar el material: ' + error.message);
+            }
+        });
+    }
+
+    /**
+     * NUEVA FUNCIONALIDAD: Vaciar todo el stock
+     */
+    async emptyStock() {
+        if (!this.isAdmin) {
+            alert('Solo los administradores pueden vaciar el stock');
+            return;
+        }
+        
+        if (!confirm('⚠️ ¿Estás seguro de que quieres vaciar TODO el stock? Esta acción no se puede deshacer.')) {
+            return;
+        }
+        
+        try {
+            await this.storage.emptyStock();
+            await this.loadMaterialsTable();
+            await this.loadDashboard();
+            
+            alert('✅ Todo el stock ha sido vaciado correctamente');
+        } catch (error) {
+            console.error('Error vaciando stock:', error);
+            alert('❌ Error al vaciar el stock: ' + error.message);
+        }
+    }
+
+    /**
+     * NUEVA FUNCIONALIDAD: Crear backup
+     */
+    async createBackup() {
+        if (!this.isAdmin) {
+            alert('Solo los administradores pueden crear backups');
+            return;
+        }
+        
+        try {
+            const backupData = await this.storage.createBackup();
+            const blob = new Blob([backupData], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `fibra_optica_backup_${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+            
+            alert('✅ Backup creado y descargado correctamente');
+        } catch (error) {
+            console.error('Error creando backup:', error);
+            alert('❌ Error al crear el backup: ' + error.message);
+        }
+    }
+
+    /**
+     * NUEVA FUNCIONALIDAD: Restaurar backup
+     */
+    async restoreBackup() {
+        if (!this.isAdmin) {
+            alert('Solo los administradores pueden restaurar backups');
+            return;
+        }
+        
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = '.json';
+        
+        input.onchange = async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            if (!confirm('⚠️ ¿Estás seguro de que quieres restaurar este backup? Se perderán todos los datos actuales.')) {
+                return;
+            }
+            
+            try {
+                const reader = new FileReader();
+                reader.onload = async (e) => {
+                    const data = e.target.result;
+                    await this.storage.restoreBackup(data);
+                    
+                    // Recargar toda la aplicación
+                    await this.loadAllData();
+                    
+                    alert('✅ Backup restaurado correctamente. La página se recargará.');
+                    location.reload();
+                };
+                reader.readAsText(file);
+            } catch (error) {
+                console.error('Error restaurando backup:', error);
+                alert('❌ Error al restaurar el backup: ' + error.message);
+            }
+        };
+        
+        input.click();
+    }
+
+    /**
+     * NUEVA FUNCIONALIDAD: Limpiar Solo Movimientos
+     */
+    async clearData() {
+        if (!this.isAdmin) {
+            const existingModal = document.querySelector('#clear-data-admin-modal');
+            if (existingModal) document.body.removeChild(existingModal);
+            
+            const modal = document.createElement('div');
+            modal.id = 'clear-data-admin-modal';
+            modal.className = 'modal';
+            modal.innerHTML = `
+                <div class="modal-content" style="text-align: center; max-width: 400px;">
+                    <div class="modal-header">
+                        <h2>⚠️ Acceso Denegado</h2>
+                    </div>
+                    <div style="padding: 20px;">
+                        <p>Solo los administradores pueden limpiar los datos</p>
+                        <div style="margin-top: 20px;">
+                            <button class="btn btn-primary" id="clear-data-admin-ok">Aceptar</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+            modal.style.display = 'flex';
+            
+            document.getElementById('clear-data-admin-ok').addEventListener('click', () => {
+                document.body.removeChild(modal);
+            });
+            return;
+        }
+        
+        // Modal de confirmación único
+        const existingModal = document.querySelector('#clear-data-confirm-modal');
+        if (existingModal) document.body.removeChild(existingModal);
+        
+        const modal = document.createElement('div');
+        modal.id = 'clear-data-confirm-modal';
+        modal.className = 'modal';
+        modal.innerHTML = `
+            <div class="modal-content" style="text-align: center; max-width: 400px;">
+                <div class="modal-header">
+                    <h2>⚠️ Confirmación</h2>
+                </div>
+                <div style="padding: 20px;">
+                    <p>¿Estás seguro de que quieres eliminar TODOS los movimientos?</p>
+                    <div style="margin-top: 20px;">
+                        <button class="btn btn-danger" id="clear-data-confirm-yes">🗑️ Eliminar</button>
+                        <button class="btn btn-secondary" id="clear-data-confirm-no">Cancelar</button>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(modal);
+        modal.style.display = 'flex';
+        
+        document.getElementById('clear-data-confirm-no').addEventListener('click', () => {
+            document.body.removeChild(modal);
+        });
+        
+        document.getElementById('clear-data-confirm-yes').addEventListener('click', async () => {
+            document.body.removeChild(modal);
+            
+            try {
+                const movements = await this.storage.getMovements();
+                for (const movement of movements) {
+                    await this.storage.deleteMovement(movement.id);
+                }
+                await this.loadDashboard();
+                await this.loadMovementsTable();
+                
+                // Crear modal de confirmación único con ID
+                const successModal = document.createElement('div');
+                successModal.id = 'clear-success-modal';
+                successModal.className = 'modal';
+                successModal.innerHTML = `
+                    <div class="modal-content" style="text-align: center; max-width: 400px;">
+                        <div class="modal-header">
+                            <h2>🧹 Limpiar Datos</h2>
+                        </div>
+                        <div style="padding: 20px;">
+                            <p style="color: #10b981; font-size: 18px; font-weight: bold;">✅ Movimientos eliminados correctamente</p>
+                            <div style="margin-top: 20px;">
+                                <button class="btn btn-primary" id="clear-success-ok">Aceptar</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                document.body.appendChild(successModal);
+                successModal.style.display = 'flex';
+                
+                document.getElementById('clear-success-ok').addEventListener('click', () => {
+                    document.body.removeChild(successModal);
+                });
+            } catch (error) {
+                console.error('Error limpiando movimientos:', error);
+                const errorModal = document.createElement('div');
+                errorModal.id = 'clear-error-modal';
+                errorModal.className = 'modal';
+                errorModal.innerHTML = `
+                    <div class="modal-content" style="text-align: center; max-width: 400px;">
+                        <div class="modal-header">
+                            <h2>❌ Error</h2>
+                        </div>
+                        <div style="padding: 20px;">
+                            <p>Error al limpiar movimientos: ${error.message}</p>
+                            <div style="margin-top: 20px;">
+                                <button class="btn btn-primary" id="clear-error-ok">Aceptar</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                document.body.appendChild(errorModal);
+                errorModal.style.display = 'flex';
+                
+                document.getElementById('clear-error-ok').addEventListener('click', () => {
+                    document.body.removeChild(errorModal);
+                });
+            }
+        });
+    }
+
+    /**
+     * FUNCIONALIDAD: Limpiar TODOS los datos (materiales, movimientos, usuarios)
+     */
+    async clearAllData() {
+        if (!this.isAdmin) {
+            alert('Solo los administradores pueden limpiar todos los datos');
+            return;
+        }
+        
+        if (!confirm('⚠️ ¿Estás seguro de que quieres eliminar TODOS los datos (materiales, movimientos, usuarios)? Esta acción no se puede deshacer.')) {
+            return;
+        }
+        
+        try {
+            await this.storage.clearAll();
+            alert('✅ Todos los datos han sido limpiados correctamente. La página se recargará.');
+            location.reload();
+        } catch (error) {
+            console.error('Error limpiando todos los datos:', error);
+            alert('❌ Error al limpiar todos los datos: ' + error.message);
+        }
+    }
+
+    /**
+     * Carga todos los datos (para usar después de restaurar backup)
+     */
+    async loadAllData() {
+        await Promise.all([
+            this.loadDashboard(),
+            this.loadMovementsTable(),
+            this.loadMaterialsTable(),
+            this.loadDropdowns()
+        ]);
+    }
+
+    /**
+     * Módulo de usuarios - Gestión completa
+     */
+    async loadUsersTable() {
+        if (!this.isAdmin) return;
+        
+        const workers = await this.storage.getWorkers();
+        const tbody = document.getElementById('users-tbody');
+        
+        tbody.innerHTML = '';
+        
+        workers.forEach(worker => {
+            const isActive = worker.status === 'activo';
+            
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${worker.name}</td>
+                <td>${worker.role}</td>
+                <td>
+                    <label class="switch">
+                        <input type="checkbox" ${isActive ? 'checked' : ''} data-user-id="${worker.id}">
+                        <span class="slider"></span>
+                    </label>
+                </td>
+                <td>
+                    <button class="btn-small btn-change-password" data-user-id="${worker.id}">🔑 Cambiar</button>
+                    <button class="btn-small btn-delete-user" data-user-id="${worker.id}">🗑️ Eliminar</button>
+                </td>
+            `;
+            tbody.appendChild(row);
+        });
+        
+        // Agregar columna de acciones
+        if (!document.querySelector('.users-actions-header')) {
+            const actionsHeader = document.querySelector('#users-table th:nth-child(4)');
+            if (actionsHeader) {
+                actionsHeader.innerHTML = 'Acciones';
+            }
+        }
+        
+        // Agregar event listeners para botones de usuarios usando event delegation
+        const usersTable = document.getElementById('users-table');
+        if (usersTable && !this.usersEventListenerAdded) {
+            console.log('Configurando event delegation para tabla de usuarios');
+            usersTable.addEventListener('click', (e) => this.handleUsersTableClick(e));
+            this.usersEventListenerAdded = true;
+            console.log('Event delegation configurada para usuarios');
+        } else if (usersTable && this.usersEventListenerAdded) {
+            console.log('Event delegation ya configurada para usuarios');
+        } else {
+            console.log('Tabla de usuarios no encontrada o flag ya configurado');
+        }
+    }
+
+    /**
+     * Maneja clicks en la tabla de usuarios usando event delegation
+     */
+    handleUsersTableClick(e) {
+        const target = e.target;
+        
+        // Toggle activar/desactivar
+        if (target.type === 'checkbox' && target.hasAttribute('data-user-id')) {
+            const userId = target.getAttribute('data-user-id');
+            const isActive = target.checked;
+            this.toggleUserStatus(userId, isActive);
+            return;
+        }
+        
+        // Cambiar contraseña
+        if (target.classList.contains('btn-change-password')) {
+            const userId = target.getAttribute('data-user-id');
+            this.changeUserPassword(userId);
+            return;
+        }
+        
+        // Eliminar usuario
+        if (target.classList.contains('btn-delete-user')) {
+            const userId = target.getAttribute('data-user-id');
+            this.deleteUser(userId);
+        }
+    }
+
+    /**
+     * Activar/desactivar usuario
+     */
+    async toggleUserStatus(userId, isActive) {
+        // Verificar si ya existe un modal de confirmación
+        const existingModal = document.querySelector('#user-status-modal');
+        if (existingModal) {
+            document.body.removeChild(existingModal);
+        }
+        
+        const workers = await this.storage.getWorkers();
+        const workerIndex = workers.findIndex(w => w.id === userId);
+        
+        if (workerIndex !== -1) {
+            workers[workerIndex].status = isActive ? 'activo' : 'inactivo';
+            await this.storage.setItem('workers', workers);
+            
+            // Crear modal de confirmación único
+            const modal = document.createElement('div');
+            modal.id = 'user-status-modal';
+            modal.className = 'modal';
+            modal.innerHTML = `
+                <div class="modal-content" style="text-align: center; max-width: 400px;">
+                    <div class="modal-header">
+                        <h2>👤 Estado de Usuario</h2>
+                        <span class="close">&times;</span>
+                    </div>
+                    <div style="padding: 20px;">
+                        <p><strong>${isActive ? '✅ Usuario activado' : '❌ Usuario desactivado'} correctamente</strong></p>
+                        ${this.currentUser.id === userId && !isActive ? '<p style="color: #f44336;">Tu cuenta ha sido desactivada. Serás desconectado.</p>' : ''}
+                        <div style="margin-top: 20px;">
+                            <button class="btn btn-primary" id="user-status-ok">Aceptar</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+            modal.style.display = 'flex';
+            
+            // Event listeners
+            const closeBtn = modal.querySelector('.close');
+            const okBtn = modal.querySelector('#user-status-ok');
+            
+            const closeModal = () => {
+                document.body.removeChild(modal);
+            };
+            
+            closeBtn.addEventListener('click', closeModal);
+            okBtn.addEventListener('click', () => {
+                closeModal();
+                if (this.currentUser.id === userId && !isActive) {
+                    this.logout();
+                } else {
+                    this.loadDropdowns();
+                }
+            });
+        }
+    }
+
+    /**
+     * Eliminar usuario
+     */
+    async deleteUser(userId) {
+        if (!this.isAdmin) {
+            const existingModal = document.querySelector('#delete-user-admin-modal');
+            if (existingModal) document.body.removeChild(existingModal);
+            
+            const modal = document.createElement('div');
+            modal.id = 'delete-user-admin-modal';
+            modal.className = 'modal';
+            modal.innerHTML = `
+                <div class="modal-content" style="text-align: center; max-width: 400px;">
+                    <div class="modal-header">
+                        <h2>⚠️ Acceso Denegado</h2>
+                    </div>
+                    <div style="padding: 20px;">
+                        <p>Solo los administradores pueden eliminar usuarios</p>
+                        <div style="margin-top: 20px;">
+                            <button class="btn btn-primary" id="delete-user-admin-ok">Aceptar</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+            modal.style.display = 'flex';
+            
+            document.getElementById('delete-user-admin-ok').addEventListener('click', () => {
+                document.body.removeChild(modal);
+            });
+            return;
+        }
+
+        // Modal de confirmación único
+        const existingModal = document.querySelector('#delete-user-confirm-modal');
+        if (existingModal) document.body.removeChild(existingModal);
+        
+        const modal = document.createElement('div');
+        modal.id = 'delete-user-confirm-modal';
+        modal.className = 'modal';
+        modal.innerHTML = `
+            <div class="modal-content" style="text-align: center; max-width: 400px;">
+                <div class="modal-header">
+                    <h2>⚠️ Confirmación</h2>
+                </div>
+                <div style="padding: 20px;">
+                    <p>¿Estás seguro de que quieres ELIMINAR permanentemente este usuario?</p>
+                    <p style="font-size: 12px; color: #666; margin-top: 10px;">Esta acción no se puede deshacer.</p>
+                    <div style="margin-top: 20px;">
+                        <button class="btn btn-danger" id="delete-user-confirm-yes">🗑️ Eliminar</button>
+                        <button class="btn btn-secondary" id="delete-user-confirm-no">Cancelar</button>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(modal);
+        modal.style.display = 'flex';
+        
+        document.getElementById('delete-user-confirm-no').addEventListener('click', () => {
+            document.body.removeChild(modal);
+        });
+        
+        document.getElementById('delete-user-confirm-yes').addEventListener('click', async () => {
+            document.body.removeChild(modal);
+            
+            try {
+                const workers = await this.storage.getWorkers();
+                const workerIndex = workers.findIndex(w => w.id === userId);
+                
+                if (workerIndex === -1) {
+                    const errorModal = document.createElement('div');
+                    errorModal.id = 'delete-user-not-found-modal';
+                    errorModal.className = 'modal';
+                    errorModal.innerHTML = `
+                        <div class="modal-content" style="text-align: center; max-width: 400px;">
+                            <div class="modal-header">
+                                <h2>❌ Error</h2>
+                            </div>
+                            <div style="padding: 20px;">
+                                <p>Usuario no encontrado</p>
+                                <div style="margin-top: 20px;">
+                                    <button class="btn btn-primary" id="delete-user-not-found-ok">Aceptar</button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    
+                    document.body.appendChild(errorModal);
+                    errorModal.style.display = 'flex';
+                    
+                    document.getElementById('delete-user-not-found-ok').addEventListener('click', () => {
+                        document.body.removeChild(errorModal);
+                    });
+                    return;
+                }
+
+                const workerName = workers[workerIndex].name;
+                workers.splice(workerIndex, 1);
+                await this.storage.setItem('workers', workers);
+                
+                // Si se eliminó al usuario actual, hacer logout
+                if (this.currentUser.id === userId) {
+                    const logoutModal = document.createElement('div');
+                    logoutModal.id = 'delete-self-logout-modal';
+                    logoutModal.className = 'modal';
+                    logoutModal.innerHTML = `
+                        <div class="modal-content" style="text-align: center; max-width: 400px;">
+                            <div class="modal-header">
+                                <h2>⚠️ Cuenta Eliminada</h2>
+                            </div>
+                            <div style="padding: 20px;">
+                                <p>Tu cuenta ha sido eliminada. Serás desconectado.</p>
+                                <div style="margin-top: 20px;">
+                                    <button class="btn btn-primary" id="delete-self-logout-ok">Aceptar</button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    
+                    document.body.appendChild(logoutModal);
+                    logoutModal.style.display = 'flex';
+                    
+                    document.getElementById('delete-self-logout-ok').addEventListener('click', () => {
+                        document.body.removeChild(logoutModal);
+                        this.logout();
+                    });
+                    return;
+            }
+            
+            // Recargar tabla de usuarios
+            await this.loadUsersTable();
+            await this.loadDropdowns();
+            
+            // Modal de éxito único
+            const successModal = document.createElement('div');
+            successModal.id = 'delete-user-success-modal';
+            successModal.className = 'modal';
+            successModal.innerHTML = `
+                <div class="modal-content" style="text-align: center; max-width: 400px;">
+                    <div class="modal-header">
+                        <h2>✅ Usuario Eliminado</h2>
+                    </div>
+                    <div style="padding: 20px;">
+                        <p>Usuario "${workerName}" eliminado correctamente</p>
+                        <div style="margin-top: 20px;">
+                            <button class="btn btn-primary" id="delete-user-success-ok">Aceptar</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(successModal);
+            successModal.style.display = 'flex';
+            
+            document.getElementById('delete-user-success-ok').addEventListener('click', () => {
+                document.body.removeChild(successModal);
+            });
+        } catch (error) {
+            console.error('Error eliminando usuario:', error);
+            const errorModal = document.createElement('div');
+            errorModal.id = 'delete-user-error-modal';
+            errorModal.className = 'modal';
+            errorModal.innerHTML = `
+                <div class="modal-content" style="text-align: center; max-width: 400px;">
+                    <div class="modal-header">
+                        <h2>❌ Error</h2>
+                    </div>
+                    <div style="padding: 20px;">
+                        <p>Error al eliminar el usuario: ${error.message}</p>
+                        <div style="margin-top: 20px;">
+                            <button class="btn btn-primary" id="delete-user-error-ok">Aceptar</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(errorModal);
+            errorModal.style.display = 'flex';
+            
+            document.getElementById('delete-user-error-ok').addEventListener('click', () => {
+                document.body.removeChild(errorModal);
+            });
+        }
+    }
+
+    /**
+     * Cambiar contraseña de usuario
+     */
+    async changeUserPassword(userId) {
+        // Verificar si ya existe un modal de cambio de contraseña
+        const existingModal = document.querySelector('#change-password-modal');
+        if (existingModal) {
+            document.body.removeChild(existingModal);
+        }
+        
+        const workers = await this.storage.getWorkers();
+        const worker = workers.find(w => w.id === userId);
+        
+        if (!worker) {
+            alert('Usuario no encontrado');
+            return;
+        }
+        
+        const modal = document.createElement('div');
+        modal.id = 'change-password-modal';
+        modal.className = 'modal';
+        modal.innerHTML = `
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>🔑 Cambiar Contraseña</h2>
+                    <span class="close">&times;</span>
+                </div>
+                <form id="change-password-form">
+                    <div class="form-group">
+                        <label>Usuario:</label>
+                        <input type="text" value="${worker.name}" disabled>
+                    </div>
+                    <div class="form-group">
+                        <label for="new-password">Nueva contraseña:</label>
+                        <input type="password" id="new-password" required placeholder="Nueva contraseña">
+                    </div>
+                    <div class="form-group">
+                        <label for="confirm-password">Confirmar contraseña:</label>
+                        <input type="password" id="confirm-password" required placeholder="Confirmar contraseña">
+                    </div>
+                    <div class="modal-actions">
+                        <button type="button" class="btn btn-secondary modal-cancel">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">💾 Actualizar Contraseña</button>
+                    </div>
+                </form>
+            </div>
+        `;
+        
+        document.body.appendChild(modal);
+        modal.style.display = 'flex';
+        
+        // Event listeners
+        const closeBtn = modal.querySelector('.close');
+        const cancelBtn = modal.querySelector('.modal-cancel');
+        const form = modal.querySelector('#change-password-form');
+        
+        const closeModal = () => {
+            document.body.removeChild(modal);
+        };
+        
+        closeBtn.addEventListener('click', closeModal);
+        cancelBtn.addEventListener('click', closeModal);
+        
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const newPassword = document.getElementById('new-password').value;
+            const confirmPassword = document.getElementById('confirm-password').value;
+            
+            if (newPassword !== confirmPassword) {
+                alert('Las contraseñas no coinciden');
+                return;
+            }
+            
+            if (!newPassword || !newPassword.trim()) {
+                alert('La contraseña no puede estar vacía');
+                return;
+            }
+            
+            try {
+                const workers = await this.storage.getWorkers();
+                const workerIndex = workers.findIndex(w => w.id === userId);
+                
+                if (workerIndex !== -1) {
+                    workers[workerIndex].password = newPassword.trim();
+                    await this.storage.setItem('workers', workers);
+                    
+                    alert('Contraseña actualizada correctamente');
+                    closeModal();
+                }
+            } catch (error) {
+                console.error('Error cambiando contraseña:', error);
+                alert('Error al cambiar la contraseña: ' + error.message);
+            }
+        });
+    }
+
+    /**
+     * Agregar nuevo usuario
+     */
+    async addNewUser() {
+        // Verificar si ya existe un modal de nuevo usuario
+        const existingModal = document.querySelector('#new-user-modal');
+        if (existingModal) {
+            document.body.removeChild(existingModal);
+        }
+        
+        const modal = document.createElement('div');
+        modal.id = 'new-user-modal';
+        modal.className = 'modal';
+        modal.innerHTML = `
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>👥 Nuevo Usuario</h2>
+                    <span class="close">&times;</span>
+                </div>
+                <form id="new-user-form">
+                    <div class="form-group">
+                        <label for="new-user-name">Nombre completo:</label>
+                        <input type="text" id="new-user-name" required placeholder="Ej: Juan Pérez García">
+                    </div>
+                    <div class="form-group">
+                        <label for="new-user-role">Rol:</label>
+                        <select id="new-user-role" required>
+                            <option value="">-- Selecciona rol --</option>
+                            <option value="trabajador">Trabajador</option>
+                            <option value="administrador">Administrador</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="new-user-password">Contraseña inicial:</label>
+                        <input type="password" id="new-user-password" required placeholder="Contraseña" value="1234">
+                    </div>
+                    <div class="form-group">
+                        <label for="new-user-phone">Teléfono (opcional):</label>
+                        <input type="tel" id="new-user-phone" placeholder="Teléfono de contacto">
+                    </div>
+                    <div class="modal-actions">
+                        <button type="button" class="btn btn-secondary modal-cancel">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">💾 Crear Usuario</button>
+                    </div>
+                </form>
+            </div>
+        `;
+        
+        document.body.appendChild(modal);
+        modal.style.display = 'flex';
+        
+        // Event listeners
+        const closeBtn = modal.querySelector('.close');
+        const cancelBtn = modal.querySelector('.modal-cancel');
+        const form = modal.querySelector('#new-user-form');
+        
+        const closeModal = () => {
+            document.body.removeChild(modal);
+        };
+        
+        closeBtn.addEventListener('click', closeModal);
+        cancelBtn.addEventListener('click', closeModal);
+        
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const name = document.getElementById('new-user-name').value;
+            const role = document.getElementById('new-user-role').value;
+            const password = document.getElementById('new-user-password').value;
+            const phone = document.getElementById('new-user-phone').value;
+            
+            if (!name || !role || !password) {
+                alert('Por favor completa todos los campos obligatorios');
+                return;
+            }
+            
+            try {
+                const workers = await this.storage.getWorkers();
+                const userId = `${role.toUpperCase()}${String(workers.length + 1).padStart(3, '0')}`;
+                
+                const newWorker = {
+                    id: userId,
+                    code: userId,
+                    name: name.trim(),
+                    email: `${name.toLowerCase().replace(' ', '.').replace(/[^a-z.]/g, '')}@empresa.com`,
+                    phone: phone.trim(),
+                    role: role,
+                    status: 'activo',
+                    registrationDate: new Date().toISOString().split('T')[0],
+                    notes: `Usuario creado el ${new Date().toLocaleDateString('es-ES')}`,
+                    password: password.trim()
+                };
+                
+                await this.storage.addWorker(newWorker);
+                
+                await this.loadUsersTable();
+                await this.loadDropdowns();
+                
+                alert(`Usuario ${name} creado correctamente con ID: ${userId}`);
+                closeModal();
+            } catch (error) {
+                console.error('Error creando usuario:', error);
+                alert('Error al crear el usuario: ' + error.message);
+            }
+        });
+    }
+
+    /**
+     * Generar reporte
+     */
+    async generateReport() {
+        const reportType = document.getElementById('report-type').value;
+        const startDate = document.getElementById('report-start-date').value;
+        const endDate = document.getElementById('report-end-date').value;
+        
+        if (!startDate || !endDate) {
+            alert('Por favor selecciona las fechas de inicio y fin');
+            return;
+        }
+        
+        const reportContent = document.getElementById('report-content');
+        let html = '';
+        
+        switch (reportType) {
+            case 'movements':
+                html = await this.generateMovementsReport(startDate, endDate);
+                break;
+            case 'materials':
+                html = await this.generateMaterialsReport();
+                break;
+            case 'workers':
+                html = await this.generateWorkersReport(startDate, endDate);
+                break;
+        }
+        
+        reportContent.innerHTML = html;
+        
+        // Mostrar botones de acciones del reporte
+        document.getElementById('report-actions').style.display = 'flex';
+    }
+
+    /**
+     * Generar reporte de movimientos
+     */
+    async generateMovementsReport(startDate, endDate) {
+        const movements = await this.storage.getMovementsByDateRange(startDate, endDate);
+        
+        let html = `
+            <h3>📋 Reporte de Movimientos</h3>
+            <p><strong>Período:</strong> ${startDate} al ${endDate}</p>
+            <p><strong>Total de movimientos:</strong> ${movements.length}</p>
+            
+            <table class="report-table">
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Material</th>
+                        <th>Tipo</th>
+                        <th>Cantidad</th>
+                        <th>Usuario</th>
+                    </tr>
+                </thead>
+                <tbody>
+        `;
+        
+        movements.forEach(movement => {
+            html += `
+                <tr>
+                    <td>${new Date(movement.date).toLocaleDateString('es-ES')}</td>
+                    <td>${movement.materialName}</td>
+                    <td><span class="badge badge-${movement.type}">${movement.type}</span></td>
+                    <td>${movement.quantity}</td>
+                    <td>${movement.userName}</td>
+                </tr>
+            `;
+        });
+        
+        html += `
+                </tbody>
+            </table>
+        `;
+        
+        return html;
+    }
+
+    /**
+     * Generar reporte de materiales
+     */
+    async generateMaterialsReport() {
+        const materials = await this.storage.getMaterials();
+        const lowStock = materials.filter(m => m.stock <= 10);
+        
+        let html = `
+            <h3>📦 Estado de Materiales</h3>
+            <p><strong>Total de materiales:</strong> ${materials.length}</p>
+            <p><strong>Materiales con stock bajo:</strong> ${lowStock.length}</p>
+            
+            <h4>📦 Materiales con Stock Bajo (≤ 10)</h4>
+            <table class="report-table">
+                <thead>
+                    <tr>
+                        <th>Código</th>
+                        <th>Material</th>
+                        <th>Stock Actual</th>
+                    </tr>
+                </thead>
+                <tbody>
+        `;
+        
+        lowStock.forEach(material => {
+            html += `
+                <tr>
+                    <td>${material.code}</td>
+                    <td>${material.name}</td>
+                    <td>${material.stock} ${material.unit}</td>
+                </tr>
+            `;
+        });
+        
+        html += `
+                </tbody>
+            </table>
+        `;
+        
+        return html;
+    }
+
+    /**
+     * Generar reporte de trabajadores
+     */
+    async generateWorkersReport(startDate, endDate) {
+        const movements = await this.storage.getMovementsByDateRange(startDate, endDate);
+        const workerStats = {};
+        
+        movements.forEach(movement => {
+            if (!workerStats[movement.userName]) {
+                workerStats[movement.userName] = {
+                    name: movement.userName,
+                    movements: 0,
+                    totalQuantity: 0
+                };
+            }
+            workerStats[movement.userName].movements++;
+            workerStats[movement.userName].totalQuantity += movement.quantity;
+        });
+        
+        let html = `
+            <h3>👥 Rendimiento de Trabajadores</h3>
+            <p><strong>Período:</strong> ${startDate} al ${endDate}</p>
+            <p><strong>Trabajadores activos:</strong> ${Object.keys(workerStats).length}</p>
+            
+            <table class="report-table">
+                <thead>
+                    <tr>
+                        <th>Trabajador</th>
+                        <th>Total Movimientos</th>
+                        <th>Cantidad Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+        `;
+        
+        Object.values(workerStats).forEach(stat => {
+            html += `
+                <tr>
+                    <td>${stat.name}</td>
+                    <td>${stat.movements}</td>
+                    <td>${stat.totalQuantity}</td>
+                </tr>
+            `;
+        });
+        
+        html += `
+                </tbody>
+            </table>
+        `;
+        
+        return html;
+    }
+
+    /**
+     * Exportar listado de materiales a PDF
+     */
+    async exportMaterialsPDF() {
+        const materials = await this.storage.getMaterials();
+        const materialsTable = document.getElementById('materials-table').cloneNode(true);
+        
+        // Crear contenido HTML para el PDF
+        const htmlContent = `
+            <div style="text-align: center; margin-bottom: 20px;">
+                <h1>Listado de Materiales - Fibra Óptica</h1>
+                <p>Fecha de generación: ${new Date().toLocaleDateString('es-ES')}</p>
+            </div>
+            ${materialsTable.outerHTML}
+        `;
+        
+        // Usar window.print para PDF
+        const printWindow = window.open('', '_blank');
+        printWindow.document.write(`
+            <html>
+                <head>
+                    <title>Listado de Materiales</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; margin: 20px; }
+                        table { width: 100%; border-collapse: collapse; }
+                        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+                        th { background-color: #f2f2f2; font-weight: bold; }
+                        h1 { color: #2196F3; border-bottom: 2px solid #2196F3; }
+                    </style>
+                </head>
+                <body>
+                    ${htmlContent}
+                </body>
+            </html>
+        `);
+        printWindow.document.close();
+        printWindow.print();
+    }
+
+    /**
+     * Imprimir reporte actual
+     */
+    printReport() {
+        const reportContent = document.getElementById('report-content');
+        if (reportContent.children.length === 0 || reportContent.children[0].classList.contains('report-placeholder')) {
+            alert('Primero genera un reporte');
+            return;
+        }
+        
+        const printWindow = window.open('', '_blank');
+        const htmlContent = `
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>Reporte Fibra Óptica</title>
+                <style>
+                    body { font-family: Arial, sans-serif; margin: 20px; }
+                    table { width: 100%; border-collapse: collapse; }
+                    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+                    th { background-color: #f2f2f2; font-weight: bold; }
+                    .report-header { text-align: center; margin-bottom: 20px; }
+                    @media print { body { margin: 0; } }
+                </style>
+            </head>
+            <body>
+                <div class="report-header">
+                    <h1>Reporte Fibra Óptica</h1>
+                    <p>Fecha: ${new Date().toLocaleDateString('es-ES')}</p>
+                </div>
+                ${reportContent.innerHTML}
+            </body>
+            </html>
+        `;
+        
+        printWindow.document.write(htmlContent);
+        printWindow.document.close();
+        printWindow.print();
+    }
+
+    /**
+     * Descargar reporte actual como PDF
+     */
+    downloadReportPDF() {
+        const reportContent = document.getElementById('report-content');
+        if (reportContent.children.length === 0 || reportContent.children[0].classList.contains('report-placeholder')) {
+            alert('Primero genera un reporte');
+            return;
+        }
+        
+        const reportType = document.getElementById('report-type').value;
+        const startDate = document.getElementById('report-start-date').value;
+        const endDate = document.getElementById('report-end-date').value;
+        
+        const dateRange = startDate && endDate ? `${startDate} al ${endDate}` : 'Todas las fechas';
+        const reportName = `reporte_${reportType}_${dateRange}.pdf`.replace(/\//g, '_');
+        
+        const htmlContent = `
+            <div style="text-align: center; margin-bottom: 20px;">
+                <h1>Reporte de ${this.getReportTypeName(reportType)}</h1>
+                <p>Período: ${dateRange}</p>
+                <p>Fecha de generación: ${new Date().toLocaleDateString('es-ES')}</p>
+            </div>
+            ${reportContent.innerHTML}
+        `;
+        
+        // Usar window.print para generar PDF
+        const printWindow = window.open('', '_blank');
+        printWindow.document.write(`
+            <html>
+                <head>
+                    <title>${reportName}</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; margin: 20px; }
+                        table { width: 100%; border-collapse: collapse; }
+                        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+                        th { background-color: #f2f2f2; font-weight: bold; }
+                        h1 { color: #2196F3; border-bottom: 2px solid #2196F3; }
+                    </style>
+                </head>
+                <body>
+                    ${htmlContent}
+                </body>
+            </html>
+        `);
+        printWindow.document.close();
+        printWindow.print();
+    }
+
+    /**
+     * Obtener nombre legible del tipo de reporte
+     */
+    getReportTypeName(reportType) {
+        const names = {
+            'movements': 'Movimientos',
+            'materials': 'Estado de Materiales',
+            'workers': 'Rendimiento de Trabajadores'
+        };
+        return names[reportType] || reportType;
+    }
+
+    /**
+     * Ocultar botones de acciones del reporte
+     */
+    hideReportActions() {
+        document.getElementById('report-actions').style.display = 'none';
+    }
+
+    /**
+     * Manejar envío de configuración
+     */
+    async handleSettingsSubmit(e) {
+        e.preventDefault();
+        
+        const settings = {
+            companyName: document.getElementById('company-name').value,
+            lowStockThreshold: parseInt(document.getElementById('notification-threshold').value),
+            autoBackup: document.getElementById('auto-backup').value === 'true'
+        };
+        
+        try {
+            await this.storage.updateSettings(settings);
+            alert('✅ Configuración guardada correctamente');
+        } catch (error) {
+            console.error('Error guardando configuración:', error);
+            alert('❌ Error al guardar la configuración');
+        }
+    }
+
+    /**
+     * Exportar datos
+     */
+    async exportData() {
+        try {
+            const data = await this.storage.createBackup();
+            const blob = new Blob([data], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `fibra_optica_backup_${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+            
+            alert('✅ Datos exportados correctamente');
+        } catch (error) {
+            alert('❌ Error al exportar datos: ' + error.message);
+        }
+    }
+
+    /**
+     * Importar datos
+     */
+    async importData() {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = '.json';
+        
+        input.onchange = async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                try {
+                    const data = e.target.result;
+                    await this.storage.restoreBackup(data);
+                    alert('✅ Datos importados correctamente. Recarga la página para ver los cambios.');
+                    location.reload();
+                } catch (error) {
+                    alert('❌ Error al procesar el archivo: ' + error.message);
+                }
+            };
+            reader.readAsText(file);
+        };
+        
+        input.click();
+    }
+
+    /**
+     * Exportar datos a Excel
+     */
+    async exportToExcel() {
+        const materials = await this.storage.getMaterials();
+        const movements = await this.storage.getMovements();
+        
+        let csv = '=== REPORTE DE MATERIALES ===\n';
+        csv += 'Código,Nombre,Categoría,Stock Actual,Stock Mínimo,Unidad,Estado\n';
+        
+        materials.forEach(material => {
+            const status = material.stock <= 10 ? 'Stock Bajo' : 'Normal';
+            csv += `"${material.code}","${material.name}","${material.category}",${material.stock},0,"${material.unit}","${status}"\n`;
+        });
+        
+        csv += '\n=== REPORTE DE MOVIMIENTOS ===\n';
+        csv += 'Fecha,Material,Código,Trabajador,Tipo,Cantidad,Observaciones\n';
+        
+        movements.forEach(movement => {
+            const date = new Date(movement.date).toLocaleDateString('es-ES');
+            csv += `"${date}","${movement.materialName}","${movement.materialCode}","${movement.userName}","${movement.type}",${movement.quantity},"${movement.observations || ''}"\n`;
+        });
+        
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `reporte_completo_${new Date().toISOString().split('T')[0]}.csv`;
+        a.click();
+        window.URL.revokeObjectURL(url);
+    }
+
+    /**
+     * Exportar datos a PDF
+     */
+    async exportToPDF() {
+        const materials = await this.storage.getMaterials();
+        const movements = await this.storage.getMovements();
+        
+        let reportContent = `
+            <h1>Reporte Completo - Control de Materiales Fibra Óptica</h1>
+            <p><strong>Fecha:</strong> ${new Date().toLocaleDateString('es-ES')}</p>
+            <p><strong>Generado por:</strong> ${this.currentUser.name}</p>
+            
+            <h2>Resumen de Materiales (${materials.length})</h2>
+            <table border="1" style="width:100%; border-collapse:collapse;">
+                <tr style="background-color:#f2f2f2;">
+                    <th>Código</th>
+                    <th>Nombre</th>
+                    <th>Categoría</th>
+                    <th>Stock</th>
+                    <th>Stock Mín</th>
+                    <th>Estado</th>
+                </tr>
+        `;
+        
+        materials.forEach(material => {
+            const status = material.stock <= 10 ? 'BAJO' : 'OK';
+            const bgColor = material.stock <= 10 ? '#ffebee' : '#f1f8e9';
+            reportContent += `
+                <tr style="background-color:${bgColor};">
+                    <td>${material.code}</td>
+                    <td>${material.name}</td>
+                    <td>${material.category}</td>
+                    <td>${material.stock} ${material.unit}</td>
+                    <td>0 ${material.unit}</td>
+                    <td><strong>${status}</strong></td>
+                </tr>
+            `;
+        });
+        
+        reportContent += `
+            </table>
+            
+            <h2>Movimientos Recientes (${movements.length})</h2>
+            <table border="1" style="width:100%; border-collapse:collapse;">
+                <tr style="background-color:#f2f2f2;">
+                    <th>Fecha</th>
+                    <th>Material</th>
+                    <th>Trabajador</th>
+                    <th>Tipo</th>
+                    <th>Cantidad</th>
+                </tr>
+        `;
+        
+        movements.slice(-50).forEach(movement => {
+            const date = new Date(movement.date).toLocaleDateString('es-ES');
+            const bgColor = movement.type === 'salida' ? '#ffebee' : '#e8f5e8';
+            reportContent += `
+                <tr style="background-color:${bgColor};">
+                    <td>${date}</td>
+                    <td>${movement.materialName}</td>
+                    <td>${movement.userName}</td>
+                    <td>${movement.type.toUpperCase()}</td>
+                    <td>${movement.quantity}</td>
+                </tr>
+            `;
+        });
+        
+        reportContent += '</table>';
+        
+        // Crear ventana de impresión
+        const printWindow = window.open('', '_blank');
+        printWindow.document.write(`
+            <html>
+                <head>
+                    <title>Reporte Completo - Fibra Óptica</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; margin: 20px; }
+                        h1 { color: #2196F3; border-bottom: 2px solid #2196F3; }
+                        h2 { color: #4CAF50; margin-top: 30px; }
+                        table { margin: 10px 0; }
+                        th { padding: 8px; text-align: left; }
+                        td { padding: 8px; }
+                        @media print {
+                            body { margin: 0; }
+                            .no-print { display: none; }
+                        }
+                    </style>
+                </head>
+                <body>
+                    ${reportContent}
+                    <div class="no-print" style="margin-top: 30px;">
+                        <button onclick="window.print()" style="padding: 10px 20px; background: #2196F3; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                            🖨️ Imprimir / Guardar como PDF
+                        </button>
+                    </div>
+                </body>
+            </html>
+        `);
+        printWindow.document.close();
+        printWindow.focus();
+    }
+
+    /**
+     * Cierra la sesión del usuario
+     */
+    logout() {
+        // Verificar si ya existe un modal de logout
+        const existingModal = document.querySelector('#logout-modal');
+        if (existingModal) {
+            document.body.removeChild(existingModal);
+        }
+        
+        const modal = document.createElement('div');
+        modal.id = 'logout-modal';
+        modal.className = 'modal';
+        modal.innerHTML = `
+            <div class="modal-content" style="text-align: center; max-width: 400px;">
+                <div class="modal-header">
+                    <h2>🚪 Cerrar Sesión</h2>
+                    <span class="close">&times;</span>
+                </div>
+                <div style="padding: 20px;">
+                    <p>¿Estás seguro de que quieres cerrar sesión?</p>
+                    <p style="color: #666; font-size: 14px;">Sesión actual: <strong>${this.currentUser.name}</strong></p>
+                    <div style="margin-top: 20px;">
+                        <button id="confirm-logout" class="btn-primary" style="background: #f44336; margin-right: 10px;">Sí, Cerrar Sesión</button>
+                        <button id="cancel-logout" class="btn-secondary">Cancelar</button>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(modal);
+        modal.style.display = 'flex';
+        
+        // Event listeners
+        const closeBtn = modal.querySelector('.close');
+        const confirmBtn = modal.querySelector('#confirm-logout');
+        const cancelBtn = modal.querySelector('#cancel-logout');
+        
+        const confirmLogout = () => {
+            // Limpiar usuario actual
+            this.currentUser = null;
+            this.isAdmin = false;
+            
+            // Limpiar storage
+            this.storage.setCurrentUser(null, false);
+            
+            // Mostrar modal de login
+            document.getElementById('app').style.display = 'none';
+            this.showLoginModal();
+            
+            // Remover modal
+            document.body.removeChild(modal);
+            
+            console.log('Usuario cerró sesión');
+        };
+        
+        const cancelLogout = () => {
+            document.body.removeChild(modal);
+        };
+        
+        closeBtn.addEventListener('click', cancelLogout);
+        confirmBtn.addEventListener('click', confirmLogout);
+        cancelBtn.addEventListener('click', cancelLogout);
+        
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                cancelLogout();
+            }
+        });
+    }
+}
+
+// Inicializar aplicación cuando el DOM esté listo
+document.addEventListener('DOMContentLoaded', async () => {
+    console.log('DOM cargado, inicializando aplicación online...');
+    
+    // Crear instancia global de la aplicación
+    window.app = new FibraOpticaApp();
+    
+    // Inicializar cuando el DOM esté listo
+    await window.app.start();
+    
+    console.log('Aplicación online lista para usar');
+});

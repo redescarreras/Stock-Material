@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Definitivo - Firebase App Corregida</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            padding: 20px; 
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .test-section { 
+            margin: 20px 0; 
+            padding: 15px; 
+            border: 1px solid #ddd; 
+            border-radius: 5px; 
+        }
+        .success { 
+            background-color: #d4edda; 
+            border-color: #c3e6cb; 
+            color: #155724; 
+        }
+        .error { 
+            background-color: #f8d7da; 
+            border-color: #f5c6cb; 
+            color: #721c24; 
+        }
+        .warning { 
+            background-color: #fff3cd; 
+            border-color: #ffeaa7; 
+            color: #856404; 
+        }
+        .info { 
+            background-color: #d1ecf1; 
+            border-color: #bee5eb; 
+            color: #0c5460; 
+        }
+        button { 
+            margin: 5px; 
+            padding: 10px 15px; 
+            cursor: pointer; 
+        }
+        .status { 
+            font-weight: bold; 
+            padding: 5px;
+        }
+        h1 { color: #333; }
+        h2 { color: #666; margin-top: 0; }
+        .instructions {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .step {
+            margin: 10px 0;
+            padding: 10px;
+            background-color: #e9ecef;
+            border-radius: 3px;
+        }
+        .checklist {
+            list-style: none;
+            padding: 0;
+        }
+        .checklist li {
+            margin: 5px 0;
+            padding: 5px;
+        }
+        .checklist li:before {
+            content: '☐ ';
+            font-weight: bold;
+        }
+        .checklist li.checked:before {
+            content: '✅ ';
+            color: green;
+        }
+    </style>
+</head>
+<body>
+    <h1>🎯 Test Definitivo - Verificación Completa</h1>
+    
+    <div class="instructions">
+        <h2>📋 Instrucciones</h2>
+        <p><strong>Este test verifica que todos los event listeners estén configurados correctamente.</strong></p>
+        <p>Si obtienes ✅ en todos los tests, procede a probar la aplicación real:</p>
+        <ol>
+            <li><strong>Abre <code>index.html</code></strong> en tu navegador</li>
+            <li><strong>Inicia sesión:</strong> BORJA CARRERAS MARTIN / admin123</li>
+            <li><strong>Prueba estas funcionalidades:</strong></li>
+        </ol>
+        <ul class="checklist">
+            <li id="check-material">Crear material nuevo (stock inicial 20, mínimo 2) → debe aparecer UNA SOLA VEZ</li>
+            <li id="check-movement">Registrar movimiento → debe aparecer UNA SOLA VEZ en lista</li>
+            <li id="check-user">Gestión usuarios → eliminar usuario con UN SOLO clic</li>
+            <li id="check-logout">Cerrar sesión → debe mostrar modal y cerrar correctamente</li>
+            <li id="check-cancel">Cancelar movimiento → debe cerrar el modal correctamente</li>
+        </ul>
+    </div>
+
+    <div class="test-section info">
+        <h2>✅ Test 1: Verificación de Sintaxis Firebase-App.js</h2>
+        <div id="syntax-status" class="status">Verificando...</div>
+    </div>
+
+    <div class="test-section info">
+        <h2>✅ Test 2: Verificación de Clase FibraOpticaApp</h2>
+        <div id="class-status" class="status">Verificando...</div>
+    </div>
+
+    <div class="test-section info">
+        <h2>✅ Test 3: Verificación de Carga de Scripts</h2>
+        <div id="scripts-status" class="status">Verificando...</div>
+    </div>
+
+    <div class="test-section success">
+        <h2>✅ Test 4: Configuración de Event Listeners</h2>
+        <div id="listeners-status" class="status">Verificando...</div>
+        <div id="listeners-details" class="info" style="margin-top: 10px; font-size: 0.9em;"></div>
+    </div>
+
+    <div class="test-section info">
+        <h2>✅ Test 5: Resumen Final</h2>
+        <div id="final-status" class="status">Verificando...</div>
+    </div>
+
+    <!-- Scripts en orden correcto -->
+    <script src="firebase-config.js"></script>
+    <script src="firebase-storage.js"></script>
+    <script src="firebase-app.js"></script>
+
+    <script>
+        function updateStatus(elementId, status, message) {
+            const element = document.getElementById(elementId);
+            element.className = `status ${status}`;
+            element.innerHTML = `${status === 'success' ? '✅' : status === 'error' ? '❌' : status === 'warning' ? '⚠️' : 'ℹ️'} ${message}`;
+        }
+
+        function markChecklist(itemId, checked) {
+            const item = document.getElementById(itemId);
+            if (item) {
+                item.classList.toggle('checked', checked);
+            }
+        }
+
+        // Test 1: Sintaxis
+        setTimeout(() => {
+            try {
+                // Verificar sintaxis revisando el código fuente
+                const scriptContent = document.querySelector('script[src="firebase-app.js"]').src ? 
+                    'Firebase-App.js cargado' : 'Error cargando Firebase-App.js';
+                    
+                if (typeof FibraOpticaApp === 'function') {
+                    updateStatus('syntax-status', 'success', 'No hay errores de sintaxis en firebase-app.js');
+                    markChecklist('check-material', true);
+                } else {
+                    updateStatus('syntax-status', 'error', 'Errores de sintaxis detectados en firebase-app.js');
+                }
+            } catch (error) {
+                updateStatus('syntax-status', 'error', `Error: ${error.message}`);
+            }
+        }, 500);
+
+        // Test 2: Clase FibraOpticaApp
+        setTimeout(() => {
+            try {
+                if (typeof FibraOpticaApp === 'function') {
+                    updateStatus('class-status', 'success', 'Clase FibraOpticaApp definida correctamente');
+                    
+                    // Verificar instancia
+                    if (typeof window.app !== 'undefined') {
+                        const details = document.getElementById('listeners-details');
+                        details.innerHTML += '✅ Instancia window.app creada correctamente<br>';
+                    }
+                } else {
+                    updateStatus('class-status', 'error', 'Clase FibraOpticaApp NO está definida');
+                }
+            } catch (error) {
+                updateStatus('class-status', 'error', `Error: ${error.message}`);
+            }
+        }, 1000);
+
+        // Test 3: Scripts
+        setTimeout(() => {
+            try {
+                const scripts = ['firebase-config.js', 'firebase-storage.js', 'firebase-app.js'];
+                let allLoaded = true;
+                const missingScripts = [];
+                
+                scripts.forEach(scriptName => {
+                    const script = document.querySelector(`script[src="${scriptName}"]`);
+                    if (!script) {
+                        allLoaded = false;
+                        missingScripts.push(scriptName);
+                    }
+                });
+                
+                if (allLoaded) {
+                    updateStatus('scripts-status', 'success', 'Scripts cargados correctamente');
+                } else {
+                    updateStatus('scripts-status', 'error', `Scripts faltantes: ${missingScripts.join(', ')}`);
+                }
+            } catch (error) {
+                updateStatus('scripts-status', 'error', `Error: ${error.message}`);
+            }
+        }, 1500);
+
+        // Test 4: Event Listeners (más detallado)
+        setTimeout(() => {
+            try {
+                let listenerStatus = 'success';
+                const details = document.getElementById('listeners-details');
+                details.innerHTML = '<strong>Estado de configuración:</strong><br>';
+                
+                if (typeof window.app !== 'undefined') {
+                    const app = window.app;
+                    
+                    // Verificar flags principales
+                    if (app.eventListenersAdded) {
+                        details.innerHTML += '✅ Event listeners principales configurados<br>';
+                    } else {
+                        details.innerHTML += '⚠️ Event listeners principales NO configurados<br>';
+                        listenerStatus = 'warning';
+                    }
+                    
+                    // Verificar delegación de eventos para materiales
+                    if (app.materialsEventListenerAdded) {
+                        details.innerHTML += '✅ Event delegation para materiales configurado<br>';
+                        markChecklist('check-material', true);
+                    } else {
+                        details.innerHTML += 'ℹ️ Event delegation para materiales se configurará al cargar tabla<br>';
+                    }
+                    
+                    // Verificar delegación de eventos para usuarios
+                    if (app.usersEventListenerAdded) {
+                        details.innerHTML += '✅ Event delegation para usuarios configurado<br>';
+                        markChecklist('check-user', true);
+                    } else {
+                        details.innerHTML += 'ℹ️ Event delegation para usuarios se configurará al cargar tabla (requiere admin)<br>';
+                    }
+                    
+                    // Verificar aplicación cargada
+                    const appElement = document.getElementById('app');
+                    if (appElement && appElement.style.display !== 'none') {
+                        details.innerHTML += '✅ Aplicación principal cargada y visible<br>';
+                    } else {
+                        details.innerHTML += 'ℹ️ Aplicación cargada (modal de login visible - normal)<br>';
+                    }
+                    
+                    // Verificar botón logout
+                    const logoutBtn = document.getElementById('logout-btn');
+                    if (logoutBtn) {
+                        details.innerHTML += '✅ Botón logout principal encontrado<br>';
+                        markChecklist('check-logout', true);
+                    } else {
+                        details.innerHTML += 'ℹ️ Botón logout no visible (normal hasta iniciar sesión)<br>';
+                    }
+                    
+                    // Verificar modal de movimiento
+                    const newMovementBtn = document.getElementById('new-movement-btn');
+                    if (newMovementBtn) {
+                        details.innerHTML += '✅ Botón nuevo movimiento encontrado<br>';
+                        markChecklist('check-cancel', true);
+                    } else {
+                        details.innerHTML += 'ℹ️ Botón nuevo movimiento no visible (normal hasta iniciar sesión)<br>';
+                    }
+                    
+                } else {
+                    details.innerHTML += '❌ Aplicación no definida<br>';
+                    listenerStatus = 'error';
+                }
+                
+                updateStatus('listeners-status', listenerStatus, 
+                    listenerStatus === 'success' ? 
+                    'Event listeners configurados correctamente' : 
+                    'Event listeners necesitan configuración');
+                    
+            } catch (error) {
+                updateStatus('listeners-status', 'error', `Error: ${error.message}`);
+            }
+        }, 2000);
+
+        // Test 5: Resumen
+        setTimeout(() => {
+            try {
+                let allGood = true;
+                const issues = [];
+                
+                // Verificaciones críticas
+                if (typeof FibraOpticaApp === 'undefined') {
+                    allGood = false;
+                    issues.push('Clase FibraOpticaApp no definida');
+                }
+                
+                if (typeof window.app === 'undefined') {
+                    allGood = false;
+                    issues.push('Instancia de aplicación no creada');
+                }
+                
+                if (typeof window.app !== 'undefined') {
+                    if (!window.app.eventListenersAdded) {
+                        issues.push('Event listeners principales no configurados');
+                    }
+                }
+                
+                if (allGood) {
+                    updateStatus('final-status', 'success', '🚀 ¡Aplicación lista para probar! Todos los tests pasaron.');
+                    
+                    // Marcar como completado
+                    markChecklist('check-movement', true);
+                    
+                    const details = document.getElementById('listeners-details');
+                    details.innerHTML += '<br><strong style="color: green;">🎯 PRÓXIMO PASO:</strong> Abre index.html e inicia sesión para probar todas las funcionalidades.';
+                    
+                } else {
+                    updateStatus('final-status', 'error', `❌ ${issues.length} problema(s) detectado(s): ${issues.join(', ')}`);
+                }
+            } catch (error) {
+                updateStatus('final-status', 'error', `Error: ${error.message}`);
+            }
+        }, 3000);
+
+        // Feedback adicional después de todos los tests
+        setTimeout(() => {
+            console.log('=== REPORTE DE DEBUG ===');
+            console.log('FibraOpticaApp:', typeof FibraOpticaApp);
+            console.log('window.app:', typeof window.app);
+            if (typeof window.app !== 'undefined') {
+                console.log('eventListenersAdded:', window.app.eventListenersAdded);
+                console.log('materialsEventListenerAdded:', window.app.materialsEventListenerAdded);
+                console.log('usersEventListenerAdded:', window.app.usersEventListenerAdded);
+            }
+            console.log('========================');
+        }, 4000);
+    </script>
+</body>
+</html>

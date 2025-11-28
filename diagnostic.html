@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diagnóstico - Fibra Óptica</title>
+</head>
+<body>
+    <h1>Diagnóstico de la Aplicación</h1>
+    <div id="resultados"></div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    
+    <script src="firebase-config.js"></script>
+    <script src="firebase-storage.js"></script>
+    <script src="firebase-app.js"></script>
+
+    <script>
+        function mostrarResultado(mensaje, esError = false) {
+            const div = document.getElementById('resultados');
+            const p = document.createElement('p');
+            p.style.color = esError ? 'red' : 'green';
+            p.textContent = mensaje;
+            div.appendChild(p);
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            mostrarResultado('DOM cargado correctamente');
+            
+            try {
+                mostrarResultado('Intentando inicializar FibraOpticaApp...');
+                const app = new FibraOpticaApp();
+                mostrarResultado('✅ FibraOpticaApp inicializada correctamente');
+                
+                // Verificar que el constructor tiene las variables necesarias
+                if (app.loginEventListenerAdded !== undefined) {
+                    mostrarResultado('✅ Variable loginEventListenerAdded existe');
+                } else {
+                    mostrarResultado('❌ Variable loginEventListenerAdded NO existe', true);
+                }
+                
+                if (app.adminLoginEventListenerAdded !== undefined) {
+                    mostrarResultado('✅ Variable adminLoginEventListenerAdded existe');
+                } else {
+                    mostrarResultado('❌ Variable adminLoginEventListenerAdded NO existe', true);
+                }
+                
+            } catch (error) {
+                mostrarResultado('❌ Error al inicializar: ' + error.message, true);
+                console.error('Error completo:', error);
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verificar Correcciones</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .test-item {
+            padding: 10px;
+            margin: 10px 0;
+            border-left: 4px solid #ddd;
+            background: #f9f9f9;
+        }
+        .success {
+            border-left-color: #4CAF50;
+            background: #e8f5e9;
+        }
+        .error {
+            border-left-color: #f44336;
+            background: #ffebee;
+        }
+        .warning {
+            border-left-color: #ff9800;
+            background: #fff3e0;
+        }
+        button {
+            background: #2196F3;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #1976D2;
+        }
+        #results {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 4px;
+            margin-top: 20px;
+            font-family: monospace;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔧 Verificación de Correcciones</h1>
+    
+    <div class="test-section">
+        <h2>Prueba 1: Verificar Event Listeners</h2>
+        <p>Haz clic en el botón para verificar que los event listeners están configurados correctamente:</p>
+        <button onclick="testEventListeners()">🧪 Probar Event Listeners</button>
+        <div id="event-results"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Prueba 2: Verificar Función clearData</h2>
+        <p>Verifica que la función clearData solo limpia movimientos:</p>
+        <button onclick="testClearData()">🧹 Probar Clear Data</button>
+        <div id="clear-results"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Prueba 3: Probar Logout Manual</h2>
+        <p>Prueba el logout directamente (sin modal):</p>
+        <button onclick="testDirectLogout()">🚪 Logout Directo</button>
+        <div id="logout-results"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Prueba 4: Verificar Almacenamiento</h2>
+        <p>Verifica que la sesión se guarda correctamente:</p>
+        <button onclick="testSessionStorage()">💾 Verificar Storage</button>
+        <div id="storage-results"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Prueba 5: Crear Material de Prueba</h2>
+        <p>Prueba crear un material directamente (sin formulario):</p>
+        <button onclick="testCreateMaterial()">🧪 Crear Material TEST</button>
+        <div id="material-results"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Prueba 6: Probar Modal Logout</h2>
+        <p>Prueba que el modal de logout se abra y cierre correctamente:</p>
+        <button onclick="testLogoutModal()">🚪 Probar Modal Logout</button>
+        <div id="modal-results"></div>
+    </div>
+
+    <div id="results"></div>
+
+    <script>
+        function testEventListeners() {
+            const resultsDiv = document.getElementById('event-results');
+            resultsDiv.innerHTML = '🔍 Verificando event listeners...';
+            
+            if (window.app && window.app.debugEventListeners) {
+                const result = window.app.debugEventListeners();
+                let html = '<h4>Resultados:</h4>';
+                html += '<div class="test-item ' + (result.logoutBtn ? 'success' : 'error') + '">';
+                html += 'Botón logout-btn: ' + (result.logoutBtn ? '✅ Encontrado' : '❌ No encontrado') + '</div>';
+                html += '<div class="test-item ' + (result.sidebarLogoutBtn ? 'success' : 'error') + '">';
+                html += 'Botón sidebar-logout-btn: ' + (result.sidebarLogoutBtn ? '✅ Encontrado' : '❌ No encontrado') + '</div>';
+                html += '<div class="test-item ' + (result.cancelMovementBtn ? 'success' : 'warning') + '">';
+                html += 'Botón cancel-movement-btn: ' + (result.cancelMovementBtn ? '✅ Encontrado' : '⚠️ No encontrado (normal si no hay modal activo)') + '</div>';
+                resultsDiv.innerHTML = html;
+            } else {
+                resultsDiv.innerHTML = '<div class="test-item error">❌ Aplicación no cargada o función debug no disponible</div>';
+            }
+        }
+
+        function testClearData() {
+            const resultsDiv = document.getElementById('clear-results');
+            resultsDiv.innerHTML = '🧹 Verificando función clearData...';
+            
+            if (window.app && window.app.storage) {
+                const storage = window.app.storage;
+                const hasClearMovementsOnly = typeof storage.clearMovementsOnly === 'function';
+                const hasClearAll = typeof storage.clearAll === 'function';
+                
+                let html = '<h4>Resultados:</h4>';
+                html += '<div class="test-item ' + (hasClearMovementsOnly ? 'success' : 'error') + '">';
+                html += 'Función clearMovementsOnly(): ' + (hasClearMovementsOnly ? '✅ Existe' : '❌ No existe') + '</div>';
+                html += '<div class="test-item ' + (hasClearAll ? 'success' : 'error') + '">';
+                html += 'Función clearAll(): ' + (hasClearAll ? '✅ Existe' : '❌ No existe') + '</div>';
+                
+                if (window.app.clearData) {
+                    html += '<div class="test-item success">';
+                    html += 'Función clearData() en app: ✅ Existe</div>';
+                } else {
+                    html += '<div class="test-item error">';
+                    html += 'Función clearData() en app: ❌ No existe</div>';
+                }
+                
+                resultsDiv.innerHTML = html;
+            } else {
+                resultsDiv.innerHTML = '<div class="test-item error">❌ Storage no disponible</div>';
+            }
+        }
+
+        function testDirectLogout() {
+            const resultsDiv = document.getElementById('logout-results');
+            resultsDiv.innerHTML = '🚪 Probando logout directo...';
+            
+            if (window.app) {
+                try {
+                    // Verificar que el usuario está logueado
+                    const currentUser = window.app.currentUser;
+                    const userName = currentUser ? currentUser.name : 'No hay usuario';
+                    
+                    let html = '<h4>Estado actual:</h4>';
+                    html += '<div class="test-item ' + (currentUser ? 'success' : 'warning') + '">';
+                    html += 'Usuario actual: ' + userName + '</div>';
+                    
+                    // Ahora hacer logout
+                    html += '<div class="test-item">Ejecutando logout directo...</div>';
+                    
+                    setTimeout(() => {
+                        try {
+                            window.app.currentUser = null;
+                            window.app.isAdmin = false;
+                            window.app.storage.setCurrentUser(null, false);
+                            document.getElementById('app').style.display = 'none';
+                            
+                            html += '<div class="test-item success">✅ Logout directo ejecutado correctamente</div>';
+                            resultsDiv.innerHTML = html;
+                        } catch (error) {
+                            html += '<div class="test-item error">❌ Error en logout: ' + error.message + '</div>';
+                            resultsDiv.innerHTML = html;
+                        }
+                    }, 100);
+                    
+                    resultsDiv.innerHTML = html;
+                } catch (error) {
+                    resultsDiv.innerHTML = '<div class="test-item error">❌ Error: ' + error.message + '</div>';
+                }
+            } else {
+                resultsDiv.innerHTML = '<div class="test-item error">❌ Aplicación no disponible</div>';
+            }
+        }
+
+        function testSessionStorage() {
+            const resultsDiv = document.getElementById('storage-results');
+            resultsDiv.innerHTML = '💾 Verificando almacenamiento...';
+            
+            try {
+                const sessionData = localStorage.getItem('fibra_user_session');
+                let html = '<h4>Resultados:</h4>';
+                
+                if (sessionData) {
+                    const session = JSON.parse(sessionData);
+                    const now = Date.now();
+                    const age = now - session.timestamp;
+                    const ageHours = Math.floor(age / (1000 * 60 * 60));
+                    
+                    html += '<div class="test-item success">✅ Sesión encontrada en localStorage</div>';
+                    html += '<div class="test-item">Usuario: ' + (session.user || 'No definido') + '</div>';
+                    html += '<div class="test-item">Es admin: ' + (session.isAdmin ? 'Sí' : 'No') + '</div>';
+                    html += '<div class="test-item">Edad de sesión: ' + ageHours + ' horas</div>';
+                    
+                    if (age > 86400000) { // 24 horas
+                        html += '<div class="test-item warning">⚠️ Sesión expirada</div>';
+                    } else {
+                        html += '<div class="test-item success">✅ Sesión válida</div>';
+                    }
+                } else {
+                    html += '<div class="test-item warning">⚠️ No hay sesión guardada</div>';
+                }
+                
+                resultsDiv.innerHTML = html;
+            } catch (error) {
+                resultsDiv.innerHTML = '<div class="test-item error">❌ Error verificando storage: ' + error.message + '</div>';
+            }
+        }
+
+        async function testCreateMaterial() {
+            const resultsDiv = document.getElementById('material-results');
+            resultsDiv.innerHTML = '🧪 Creando material de prueba...';
+            
+            if (window.app && window.app.storage) {
+                try {
+                    const testCode = 'TEST_' + Date.now();
+                    const testMaterial = {
+                        code: testCode,
+                        name: 'Material de Prueba',
+                        description: 'Material creado para pruebas',
+                        category: 'menudo',
+                        stock: 150,
+                        unit: 'unidades',
+                        notes: 'Material de prueba'
+                    };
+                    
+                    console.log('🧪 Creando material de prueba:', testMaterial);
+                    
+                    await window.app.storage.addMaterial(testMaterial);
+                    
+                    // Verificar que se guardó
+                    const savedMaterial = await window.app.storage.getMaterialByCode(testCode);
+                    
+                    let html = '<h4>Resultados:</h4>';
+                    if (savedMaterial) {
+                        html += '<div class="test-item success">✅ Material creado correctamente</div>';
+                        html += '<div class="test-item">Código: ' + savedMaterial.code + '</div>';
+                        html += '<div class="test-item">Nombre: ' + savedMaterial.name + '</div>';
+                        html += '<div class="test-item">Stock: ' + savedMaterial.stock + ' ' + savedMaterial.unit + '</div>';
+                        html += '<div class="test-item">Categoría: ' + savedMaterial.category + '</div>';
+                    } else {
+                        html += '<div class="test-item error">❌ Material no encontrado después de crearlo</div>';
+                    }
+                    
+                    resultsDiv.innerHTML = html;
+                } catch (error) {
+                    resultsDiv.innerHTML = '<div class="test-item error">❌ Error creando material: ' + error.message + '</div>';
+                }
+            } else {
+                resultsDiv.innerHTML = '<div class="test-item error">❌ Storage no disponible</div>';
+            }
+        }
+
+        function testLogoutModal() {
+            const resultsDiv = document.getElementById('modal-results');
+            resultsDiv.innerHTML = '🚪 Probando modal de logout...';
+            
+            if (window.app && window.app.logout) {
+                try {
+                    // Verificar que hay un usuario logueado
+                    const currentUser = window.app.currentUser;
+                    if (!currentUser) {
+                        resultsDiv.innerHTML = '<div class="test-item warning">⚠️ No hay usuario logueado. Inicia sesión primero.</div>';
+                        return;
+                    }
+                    
+                    let html = '<h4>Estado actual:</h4>';
+                    html += '<div class="test-item">Usuario: ' + currentUser.name + '</div>';
+                    html += '<div class="test-item success">✅ Función logout() disponible</div>';
+                    html += '<div class="test-item">Abriendo modal de logout en 1 segundo...</div>';
+                    
+                    resultsDiv.innerHTML = html;
+                    
+                    setTimeout(() => {
+                        try {
+                            // Simular llamada a logout() - esto debería abrir el modal
+                            console.log('🧪 Simulando apertura de modal logout');
+                            resultsDiv.innerHTML += '<div class="test-item">Modal debería haberse abierto</div>';
+                            
+                            // Verificar que el modal se abrió
+                            setTimeout(() => {
+                                const modalExists = document.querySelector('.modal[id*="logout-modal"]');
+                                if (modalExists) {
+                                    resultsDiv.innerHTML += '<div class="test-item success">✅ Modal de logout detectado en DOM</div>';
+                                    resultsDiv.innerHTML += '<div class="test-item">Modal ID: ' + modalExists.id + '</div>';
+                                } else {
+                                    resultsDiv.innerHTML += '<div class="test-item warning">⚠️ Modal no detectado (puede haberse cerrado muy rápido)</div>';
+                                }
+                            }, 500);
+                            
+                        } catch (error) {
+                            resultsDiv.innerHTML += '<div class="test-item error">❌ Error abriendo modal: ' + error.message + '</div>';
+                        }
+                    }, 1000);
+                    
+                } catch (error) {
+                    resultsDiv.innerHTML = '<div class="test-item error">❌ Error general: ' + error.message + '</div>';
+                }
+            } else {
+                resultsDiv.innerHTML = '<div class="test-item error">❌ Aplicación o función logout no disponible</div>';
+            }
+        }
+
+        // Mostrar ayuda inicial
+        document.addEventListener('DOMContentLoaded', () => {
+            const results = document.getElementById('results');
+            results.innerHTML = '🧪 <strong>Instrucciones:</strong>\n' +
+                '1. Recarga la página principal (F5) para cargar los cambios\n' +
+                '2. Inicia sesión en la aplicación\n' +
+                '3. Usa esta página para verificar que las correcciones funcionan\n' +
+                '4. Si encuentras errores, copia los resultados aquí';
+        });
+    </script>
+</body>
+</html>

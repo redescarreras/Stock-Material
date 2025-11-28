@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Final - Firebase Online</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin: 10px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .success { border-left: 4px solid #28a745; }
+        .error { border-left: 4px solid #dc3545; }
+        .warning { border-left: 4px solid #ffc107; }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background: #0056b3; }
+        pre {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+        .result {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .result.success { background: #d4edda; color: #155724; }
+        .result.error { background: #f8d7da; color: #721c24; }
+    </style>
+</head>
+<body>
+    <h1>🚀 Test Final - Aplicación Firebase Online</h1>
+    
+    <div class="test-section">
+        <h2>🔧 Verificación de Firebase</h2>
+        <button onclick="testFirebase()">Probar Firebase</button>
+        <div id="firebase-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>📊 Datos de Firebase</h2>
+        <button onclick="testData()">Probar Datos</button>
+        <div id="data-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>👥 Trabajadores</h2>
+        <button onclick="testWorkers()">Probar Workers</button>
+        <div id="workers-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>🎯 Aplicación Completa</h2>
+        <button onclick="openApp()">Abrir Aplicación</button>
+    </div>
+
+    <!-- Firebase Scripts -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    
+    <!-- App Scripts -->
+    <script src="firebase-config.js"></script>
+    <script src="firebase-storage.js"></script>
+    <script src="firebase-app.js"></script>
+
+    <script>
+        async function testFirebase() {
+            const result = document.getElementById('firebase-result');
+            result.innerHTML = '<div class="result">⏳ Probando Firebase...</div>';
+            
+            try {
+                // Test Firebase connection
+                if (typeof firebase === 'undefined') {
+                    throw new Error('Firebase no está cargado');
+                }
+                
+                const testRef = database.ref('test');
+                await testRef.set('Firebase está funcionando');
+                const snapshot = await testRef.get();
+                await testRef.remove();
+                
+                result.innerHTML = `
+                    <div class="result success">
+                        ✅ Firebase funciona correctamente<br>
+                        📊 Conexión establecida: ${database.app.options.databaseURL}
+                    </div>
+                `;
+            } catch (error) {
+                result.innerHTML = `
+                    <div class="result error">
+                        ❌ Error con Firebase: ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        async function testData() {
+            const result = document.getElementById('data-result');
+            result.innerHTML = '<div class="result">⏳ Cargando datos...</div>';
+            
+            try {
+                const materials = await window.storageManager.getMaterials();
+                const workers = await window.storageManager.getWorkers();
+                const movements = await window.storageManager.getMovements();
+                
+                result.innerHTML = `
+                    <div class="result success">
+                        ✅ Datos cargados correctamente:<br>
+                        📦 Materiales: ${materials.length}<br>
+                        👥 Trabajadores: ${workers.length}<br>
+                        📋 Movimientos: ${movements.length}
+                    </div>
+                `;
+            } catch (error) {
+                result.innerHTML = `
+                    <div class="result error">
+                        ❌ Error cargando datos: ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        async function testWorkers() {
+            const result = document.getElementById('workers-result');
+            result.innerHTML = '<div class="result">⏳ Probando trabajadores...</div>';
+            
+            try {
+                const workers = await window.storageManager.getWorkers();
+                const validWorkers = workers.filter(w => w.status === 'activo' && w.role === 'trabajador');
+                
+                let html = `
+                    <div class="result success">
+                        ✅ Workers válidos: ${validWorkers.length}<br>
+                        📋 Lista de trabajadores:<br>
+                `;
+                
+                validWorkers.forEach((worker, i) => {
+                    html += `${i+1}. ${worker.name}<br>`;
+                });
+                
+                html += '</div>';
+                result.innerHTML = html;
+            } catch (error) {
+                result.innerHTML = `
+                    <div class="result error">
+                        ❌ Error con workers: ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        function openApp() {
+            window.open('index.html', '_blank');
+        }
+
+        // Test automático al cargar
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(() => {
+                console.log('🚀 Test final cargado y listo');
+                console.log('Firebase:', typeof firebase);
+                console.log('StorageManager:', typeof window.storageManager);
+                console.log('FibraOpticaApp:', typeof FibraOpticaApp);
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

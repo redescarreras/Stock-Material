@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug Firebase - Control Fibra Óptica</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .debug-section {
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 5px;
+            background: #f8f9fa;
+        }
+        .success { background: #d4edda; border: 1px solid #c3e6cb; }
+        .error { background: #f8d7da; border: 1px solid #f5c6cb; }
+        .info { background: #d1ecf1; border: 1px solid #bee5eb; }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background: #0056b3; }
+        .result {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 5px;
+            font-family: monospace;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Debug Firebase - Control Fibra Óptica</h1>
+        <p>Esta página te ayuda a diagnosticar problemas con la aplicación online.</p>
+        
+        <div class="debug-section">
+            <h3>1. Verificar conexión Firebase</h3>
+            <button onclick="testConnection()">🧪 Probar Conexión</button>
+            <div id="connection-result" class="result" style="display: none;"></div>
+        </div>
+
+        <div class="debug-section">
+            <h3>2. Verificar datos en Firebase</h3>
+            <button onclick="checkData()">📊 Verificar Datos</button>
+            <div id="data-result" class="result" style="display: none;"></div>
+        </div>
+
+        <div class="debug-section">
+            <h3>3. Ejecutar Setup completo</h3>
+            <button onclick="runSetup()">🚀 Ejecutar Setup</button>
+            <div id="setup-result" class="result" style="display: none;"></div>
+        </div>
+
+        <div class="debug-section">
+            <h3>4. Logs de consola</h3>
+            <p>Abre la consola del navegador (F12) para ver los mensajes detallados.</p>
+            <button onclick="clearConsole()">🗑️ Limpiar Consola</button>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+    <script>
+        // Configuración Firebase
+        const firebaseConfig = {
+            apiKey: 'AIzaSyDN-D2ppaXbjT_rT74d2dXaOtWqib3zBQ0',
+            authDomain: 'stock-material-28674.firebaseapp.com',
+            databaseURL: 'https://stock-material-28674-default-rtdb.europe-west1.firebasedatabase.app',
+            projectId: 'stock-material-28674',
+            storageBucket: 'stock-material-28674.firebasestorage.app',
+            messagingSenderId: '994809951058',
+            appId: '1:994809951058:web:31d0cd19f4dcf49b84408b'
+        };
+
+        // Inicializar Firebase
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        async function testConnection() {
+            const resultDiv = document.getElementById('connection-result');
+            resultDiv.style.display = 'block';
+            resultDiv.className = 'result info';
+            
+            try {
+                console.log('Iniciando prueba de conexión...');
+                const snapshot = await database.ref('.info/connected').once('value');
+                const connected = snapshot.val();
+                
+                if (connected) {
+                    resultDiv.textContent = '✅ Conexión exitosa con Firebase\nEstado: Online';
+                    resultDiv.className = 'result success';
+                } else {
+                    resultDiv.textContent = '❌ Firebase conectado pero sin estado de conexión\nEstado: Offline';
+                    resultDiv.className = 'result error';
+                }
+            } catch (error) {
+                resultDiv.textContent = `❌ Error de conexión: ${error.message}`;
+                resultDiv.className = 'result error';
+            }
+        }
+
+        async function checkData() {
+            const resultDiv = document.getElementById('data-result');
+            resultDiv.style.display = 'block';
+            resultDiv.className = 'result info';
+            
+            try {
+                console.log('Verificando datos en Firebase...');
+                
+                // Verificar materiales
+                const materialsSnap = await database.ref('materials').once('value');
+                const materials = materialsSnap.val() || [];
+                console.log('Materials:', materials);
+                
+                // Verificar trabajadores
+                const workersSnap = await database.ref('workers').once('value');
+                const workers = workersSnap.val();
+                console.log('Workers:', workers);
+                console.log('Workers type:', typeof workers);
+                console.log('Workers is array:', Array.isArray(workers));
+                
+                // Verificar movimientos
+                const movementsSnap = await database.ref('movements').once('value');
+                const movements = movementsSnap.val() || [];
+                console.log('Movements:', movements);
+                
+                let result = '📊 RESUMEN DE DATOS:\n\n';
+                result += `Materiales: ${Array.isArray(materials) ? materials.length : 0}\n`;
+                result += `Trabajadores: ${Array.isArray(workers) ? workers.length : 'No es array'}\n`;
+                result += `Movimientos: ${Array.isArray(movements) ? movements.length : 0}\n\n`;
+                
+                if (Array.isArray(workers)) {
+                    result += '✅ Los trabajadores son un array válido\n';
+                    result += `Primeros 3 trabajadores:\n`;
+                    workers.slice(0, 3).forEach((worker, i) => {
+                        result += `  ${i+1}. ${worker.name} (${worker.role})\n`;
+                    });
+                } else {
+                    result += `❌ Los trabajadores no son un array válido\n`;
+                    result += `Tipo: ${typeof workers}\n`;
+                    result += `Valor: ${JSON.stringify(workers)}\n`;
+                }
+                
+                resultDiv.textContent = result;
+                resultDiv.className = Array.isArray(workers) ? 'result success' : 'result error';
+                
+            } catch (error) {
+                resultDiv.textContent = `❌ Error verificando datos: ${error.message}`;
+                resultDiv.className = 'result error';
+            }
+        }
+
+        async function runSetup() {
+            const resultDiv = document.getElementById('setup-result');
+            resultDiv.style.display = 'block';
+            resultDiv.className = 'result info';
+            
+            resultDiv.textContent = '🔄 Ejecutando setup...';
+            
+            try {
+                // Ejecutar el setup exactamente como en setup-users.html
+                await database.ref('materials').set([
+                    {code: 'ST01', name: 'Fibra Óptica Mono 12 Hilos', unit: 'metro', minStock: 1000, currentStock: 5000, location: 'Almacén A'},
+                    {code: 'ST02', name: 'Fibra Óptica Mono 24 Hilos', unit: 'metro', minStock: 500, currentStock: 2500, location: 'Almacén A'},
+                    {code: 'ST03', name: 'Fibra Óptica Mono 48 Hilos', unit: 'metro', minStock: 300, currentStock: 1200, location: 'Almacén A'},
+                    {code: 'CON01', name: 'Conectores SC/APC', unit: 'unidad', minStock: 100, currentStock: 500, location: 'Almacén B'},
+                    {code: 'CON02', name: 'Conectores LC/APC', unit: 'unidad', minStock: 50, currentStock: 200, location: 'Almacén B'},
+                    {code: 'EMP01', name: 'Empalme 12 Hilos', unit: 'unidad', minStock: 50, currentStock: 150, location: 'Almacén C'},
+                    {code: 'EMP02', name: 'Empalme 24 Hilos', unit: 'unidad', minStock: 30, currentStock: 80, location: 'Almacén C'},
+                    {code: 'EMP03', name: 'Empalme 48 Hilos', unit: 'unidad', minStock: 20, currentStock: 60, location: 'Almacén C'},
+                    {code: 'CAJ01', name: 'Caja Empalme 12 Hilos', unit: 'unidad', minStock: 20, currentStock: 40, location: 'Almacén C'},
+                    {code: 'CAJ02', name: 'Caja Empalme 24 Hilos', unit: 'unidad', minStock: 15, currentStock: 30, location: 'Almacén C'},
+                    {code: 'CAJ03', name: 'Caja Empalme 48 Hilos', unit: 'unidad', minStock: 10, currentStock: 20, location: 'Almacén C'}
+                ]);
+                
+                const defaultWorkers = [
+                    {id: 'ADMIN001', code: 'ADMIN001', name: 'BORJA CARRERAS MARTIN', email: 'borja@empresa.com', phone: '123456789', role: 'administrador', status: 'activo', registrationDate: '2024-01-01', notes: 'Administrador del sistema', password: 'admin123'},
+                    {id: 'ADMIN002', code: 'ADMIN002', name: 'JUAN SIMON DE LA FUENTE', email: 'juansimon@empresa.com', phone: '987654321', role: 'administrador', status: 'activo', registrationDate: '2024-01-01', notes: 'Administrador del sistema', password: 'admin123'},
+                    {id: 'ADMIN003', code: 'ADMIN003', name: 'ALEXANDER ARROYAVE', email: 'alexander@empresa.com', phone: '987654322', role: 'administrador', status: 'activo', registrationDate: '2024-01-01', notes: 'Administrador del sistema', password: 'admin123'},
+                    {id: 'TRAB001', code: 'TRAB001', name: 'JOSE ANTONIO CARRERAS MARTIN', email: 'jantonio@empresa.com', phone: '555123456', role: 'trabajador', status: 'activo', registrationDate: '2024-01-15', notes: 'Trabajador de campo', password: '1234'},
+                    {id: 'TRAB002', code: 'TRAB002', name: 'LUIS MIGUEL HIDALGO EGEA', email: 'lmiguel@empresa.com', phone: '555789012', role: 'trabajador', status: 'activo', registrationDate: '2024-01-15', notes: 'Trabajador de campo', password: '1234'},
+                    {id: 'TRAB003', code: 'TRAB003', name: 'DAVID MORENO GÓMEZ', email: 'dmoreno@empresa.com', phone: '555345678', role: 'trabajador', status: 'activo', registrationDate: '2024-01-20', notes: 'Trabajador de campo', password: '1234'},
+                    {id: 'TRAB004', code: 'TRAB004', name: 'AARON LOPEZ MUÑOZ', email: 'alopez@empresa.com', phone: '555456789', role: 'trabajador', status: 'activo', registrationDate: '2024-01-22', notes: 'Trabajador de campo', password: '1234'},
+                    {id: 'TRAB005', code: 'TRAB005', name: 'EDGAR ALONSO SANCHEZ SUAREZ', email: 'ealonso@empresa.com', phone: '555567890', role: 'trabajador', status: 'activo', registrationDate: '2024-01-25', notes: 'Trabajador de campo', password: '1234'},
+                    {id: 'TRAB006', code: 'TRAB006', name: 'JAVIER CARRERAS MARTIN', email: 'jcarreras@empresa.com', phone: '555678901', role: 'trabajador', status: 'activo', registrationDate: '2024-01-28', notes: 'Trabajador de campo', password: '1234'},
+                    {id: 'TRAB007', code: 'TRAB007', name: 'JUAN PEDRO MARTINEZ LOPEZ', email: 'jpmartinez@empresa.com', phone: '555789012', role: 'trabajador', status: 'activo', registrationDate: '2024-02-01', notes: 'Trabajador de campo', password: '1234'},
+                    {id: 'TRAB008', code: 'TRAB008', name: 'JOSE FERNANDO RODRIGUEZ', email: 'jrodriguez@empresa.com', phone: '555890123', role: 'trabajador', status: 'activo', registrationDate: '2024-02-05', notes: 'Trabajador de campo', password: '1234'},
+                    {id: 'TRAB009', code: 'TRAB009', name: 'ANTONIO MANUEL SANCHEZ', email: 'asanchez@empresa.com', phone: '555901234', role: 'trabajador', status: 'activo', registrationDate: '2024-02-10', notes: 'Trabajador de campo', password: '1234'}
+                ];
+                
+                await database.ref('workers').set(defaultWorkers);
+                
+                resultDiv.textContent = '✅ Setup completado exitosamente!\n\nDatos creados:\n• 11 materiales\n• 12 usuarios (3 administradores + 9 trabajadores)\n• Base de datos lista para usar';
+                resultDiv.className = 'result success';
+                
+            } catch (error) {
+                resultDiv.textContent = `❌ Error en setup: ${error.message}`;
+                resultDiv.className = 'result error';
+            }
+        }
+
+        function clearConsole() {
+            console.clear();
+            alert('Consola limpiada');
+        }
+
+        // Ejecutar prueba de conexión al cargar
+        window.addEventListener('load', () => {
+            setTimeout(testConnection, 1000);
+        });
+    </script>
+</body>
+</html>

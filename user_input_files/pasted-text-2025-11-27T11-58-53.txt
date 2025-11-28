@@ -1,0 +1,100 @@
+Firebase inicializado correctamente: go
+firebase-app.js:2105 DOM cargado, inicializando aplicación online...
+firebase-app.js:8 Iniciando aplicación online...
+firebase-app.js:42 Inicializando aplicación online...
+index.html:549 DOM cargado, inicializando aplicación online...
+firebase-app.js:8 Iniciando aplicación online...
+firebase-app.js:42 Inicializando aplicación online...
+firebase-app.js:2111 Uncaught (in promise) TypeError: window.app.start is not a function
+firebase-storage.js:564 Debug - getWorkers raw result: Array(14)
+firebase-storage.js:565 Debug - getWorkers type: object
+firebase-storage.js:566 Debug - getWorkers is array: true
+firebase-storage.js:564 Debug - getWorkers raw result: Array(14)
+firebase-storage.js:565 Debug - getWorkers type: object
+firebase-storage.js:566 Debug - getWorkers is array: true
+firebase-app.js:341 Debug - loadWorkerDropdown workers: Array(14)
+firebase-app.js:342 Debug - loadWorkerDropdown type: object
+firebase-app.js:343 Debug - loadWorkerDropdown is array: true
+firebase-app.js:351 Trabajadores cargados: 14
+firebase-app.js:367 Dropdown de trabajadores cargado con 11 trabajadores
+firebase-app.js:341 Debug - loadWorkerDropdown workers: Array(14)
+firebase-app.js:342 Debug - loadWorkerDropdown type: object
+firebase-app.js:343 Debug - loadWorkerDropdown is array: true
+firebase-app.js:351 Trabajadores cargados: 14
+firebase-app.js:367 Dropdown de trabajadores cargado con 11 trabajadores
+firebase-storage.js:564 Debug - getWorkers raw result: Array(14)
+firebase-storage.js:565 Debug - getWorkers type: object
+firebase-storage.js:566 Debug - getWorkers is array: true
+firebase-storage.js:564 Debug - getWorkers raw result: Array(14)
+firebase-storage.js:565 Debug - getWorkers type: object
+firebase-storage.js:566 Debug - getWorkers is array: true
+2firebase-app.js:407 Dropdown de administradores cargado con 3 administradores
+2firebase-app.js:323 Dropdowns cargados correctamente
+firebase-app.js:419 Modal de login mostrado
+firebase-app.js:62 Aplicación online inicializada correctamente
+firebase-app.js:419 Modal de login mostrado
+firebase-app.js:62 Aplicación online inicializada correctamente
+firebase-storage.js:564 Debug - getWorkers raw result: Array(14)
+firebase-storage.js:565 Debug - getWorkers type: object
+firebase-storage.js:566 Debug - getWorkers is array: true
+firebase-app.js:548 Usuario entró a la aplicación: ALEXANDER ARROYAVE
+firebase-app.js:510 Login de administrador exitoso: ALEXANDER ARROYAVE
+firebase-storage.js:564 Debug - getWorkers raw result: Array(14)
+firebase-storage.js:565 Debug - getWorkers type: object
+firebase-storage.js:566 Debug - getWorkers is array: true
+firebase-storage.js:564 Debug - getWorkers raw result: Array(14)
+firebase-storage.js:565 Debug - getWorkers type: object
+firebase-storage.js:566 Debug - getWorkers is array: true
+firebase-app.js:548 Usuario entró a la aplicación: ALEXANDER ARROYAVE
+firebase-app.js:510 Login de administrador exitoso: ALEXANDER ARROYAVE
+firebase-storage.js:564 Debug - getWorkers raw result: Array(14)
+firebase-storage.js:565 Debug - getWorkers type: object
+firebase-storage.js:566 Debug - getWorkers is array: true
+firebase-storage.js:564 Debug - getWorkers raw result: Array(14)
+firebase-storage.js:565 Debug - getWorkers type: object
+firebase-storage.js:566 Debug - getWorkers is array: true
+firebase-storage.js:564 Debug - getWorkers raw result: Array(14)
+firebase-storage.js:565 Debug - getWorkers type: object
+firebase-storage.js:566 Debug - getWorkers is array: true
+firebase-storage.js:564 Debug - getWorkers raw result: Array(14)
+firebase-storage.js:565 Debug - getWorkers type: object
+firebase-storage.js:566 Debug - getWorkers is array: true
+firebase-storage.js:564 Debug - getWorkers raw result: Array(14)
+firebase-storage.js:565 Debug - getWorkers type: object
+firebase-storage.js:566 Debug - getWorkers is array: true
+firebase-storage.js:564 Debug - getWorkers raw result: Array(14)
+firebase-storage.js:565 Debug - getWorkers type: object
+firebase-storage.js:566 Debug - getWorkers is array: true
+firebase-storage.js:564 Debug - getWorkers raw result: Array(14)
+firebase-storage.js:565 Debug - getWorkers type: object
+firebase-storage.js:566 Debug - getWorkers is array: true
+firebase-storage.js:564 Debug - getWorkers raw result: Array(14)
+firebase-storage.js:565 Debug - getWorkers type: object
+firebase-storage.js:566 Debug - getWorkers is array: true
+firebase-storage.js:564 Debug - getWorkers raw result: Array(14)
+firebase-storage.js:565 Debug - getWorkers type: object
+firebase-storage.js:566 Debug - getWorkers is array: true
+firebase-storage.js:564 Debug - getWorkers raw result: Array(14)
+firebase-storage.js:565 Debug - getWorkers type: object
+firebase-storage.js:566 Debug - getWorkers is array: true
+firebase-storage.js:564 Debug - getWorkers raw result: Array(14)
+firebase-storage.js:565 Debug - getWorkers type: object
+firebase-storage.js:566 Debug - getWorkers is array: true
+firebase-storage.js:564 Debug - getWorkers raw result: Array(14)
+firebase-storage.js:565 Debug - getWorkers type: object
+firebase-storage.js:566 Debug - getWorkers is array: true
+firebase-storage.js:564 Debug - getWorkers raw result: Array(14)
+firebase-storage.js:565 Debug - getWorkers type: object
+firebase-storage.js:566 Debug - getWorkers is array: true
+firebase-storage.js:564 Debug - getWorkers raw result: Array(14)
+firebase-storage.js:565 Debug - getWorkers type: object
+firebase-storage.js:566 Debug - getWorkers is array: true
+firebase-storage.js:564 Debug - getWorkers raw result: Array(14)
+firebase-storage.js:565 Debug - getWorkers type: object
+firebase-storage.js:566 Debug - getWorkers is array: true
+firebase-storage.js:564 Debug - getWorkers raw result: Array(14)
+firebase-storage.js:565 Debug - getWorkers type: object
+firebase-storage.js:566 Debug - getWorkers is array: true
+firebase-storage.js:564 Debug - getWorkers raw result: Array(14)
+firebase-storage.js:565 Debug - getWorkers type: object
+firebase-storage.js:566 Debug - getWorkers is array: true

@@ -1,0 +1,178 @@
+Total de materiales: 176
+
+  1. 101001J: Cable de f.o. de exterior PKP holgado de 8 fo.
+  2. 101003J: Cable de f.o. de exterior PKP holgado de 16 fo.
+  3. 101004J: Cable de f.o. de exterior PKP holgado de 24 fo.
+  4. 101005J: Cable de f.o. de exterior PKP holgado de 32 fo.
+  5. 101006J: Cable de f.o. de exterior PKP holgado de 48 fo.
+  6. 101007J: Cable de f.o. de exterior PKP holgado de 64 fo.
+  7. 101008J: Cable de f.o. de exterior PKP holgado de 128 fo.
+  8. 101009J: Cable de f.o. de exterior PKP holgado de 256 fo.
+  9. 101010J: Cable de f.o. de exterior PKP holgado de 512 fo.
+ 10. 101011J: Cable de f.o. de exterior KP holgado de 768 fo.
+ 11. 101012J: Cable de f.o. de exterior KP compacto de 864 fo.
+ 12. 101013J: Cable de f.o. de exterior KP compacto de 912 fo.
+ 13. 101014J: Cable de f.o. de interior KT de 8 fo.
+ 14. 101016J: Cable de f.o. de interior TKT de 16 fo.
+ 15. 101017J: Cable de f.o. de interior TKT de 24 fo.
+ 16. 101018J: Cable de f.o. de interior TKT de 32 fo.
+ 17. 101019J: Cable de f.o. de interior TKT de 48 fo.
+ 18. 101020J: Cable de f.o. de interior TKT de 64 fo.
+ 19. 101021J: Cable de f.o. de interior TKT de 128 fo.
+ 20. 101022J: Cable de f.o. de interior TKT de 256 fo.
+ 21. 101023J: Cable de f.o. de interior KT de 512 fo.
+ 22. 101074J: Cable de f.o. 16 VT.
+ 23. 101075J: Cable de f.o. 32 VT.
+ 24. 101076J: Cable de f.o. 64 VT.
+ 25. 101085J: Cable KT 8 fo G.652.D monotubo BLANCO
+ 26. 101082J: Cable KP 16 fo G.652.D (4x4f+2e) BLANCO
+ 27. 101086J: Cable FVT micromódulos 16 fo G.657 A2 (4x4f) BLANCO
+ 28. 101083J: Cable KP 32 fo G.652.D (8x4f) BLANCO
+ 29. 101087J: Cable FVT micromódulos 32 fo G.657 A2 (8x4f) BLANCO
+ 30. 101084J: Cable KP 64 fo G.652.D (8x8f) BLANCO
+ 31. 101088J: Cable FVT micromódulos 64 fo G.657 A2 (8x8f) BLANCO
+ 32. 101024J: Cable de f.o. de interior riser de 16 fo.
+ 33. 101025J: Cable de f.o. de interior riser de 24 fo.
+ 34. 101026J: Cable de f.o. de interior riser de 32 fo.
+ 35. 101027J: Cable de f.o. de interior riser de 48 fo.
+ 36. 101046J: Cable de f.o. de exterior KP holgado de 16 fo.
+ 37. 101047J: Cable de f.o. de exterior KP holgado de 32 fo.
+ 38. 101048J: Cable de f.o. de exterior KP holgado de 64 fo.
+ 39. 101049J: Cable de f.o. de exterior KP holgado de 128 fo.
+ 40. 101051J: Cable de f.o. de exterior riser de 16 fo.
+ 41. 101052J: Cable de f.o. de exterior riser de 32 fo.
+ 42. 102001JT: Caja de empalme TE FIST-GCO2-BC8, o similar, con bandejas de empalme 5SE para 64 fusiones  Tyco
+ 43. 102002JT: Caja de empalme TE FIST-GCO2-BC8, o similar, con bandejas de empalme 5SE para 128 fusiones Tyco
+ 44. 102003JT: Caja de empalme TE FIST-GCO2-BD8, con bandejas de empalme 5SE para 128 (160) fusiones Tyco
+ 45. 102003JM: Caja de empalme RA BPEO-2/128 3M
+ 46. 102004JT: Caja de empalme TE FIST-GCO2-BC8, o similar, con bandejas de empalme 5SE para 256 fusiones Tyco
+ 47. 102005JT: Caja de empalme TE FIST-GCO2-BD8, con bandejas de empalme 5SE para 256 (320) fusiones Tyco
+ 48. 102005JM: Caja de empalme RA BPEO-2/256 3M
+ 49. 102006JT: Caja de empalme TE FIST-GCO2-BD8, o similar, con bandejas de empalme 5SE para 512 fusiones Tyco
+ 50. 102007JT: Caja de empalme TE FIST-GCO2-BE8, con bandejas de empalme 5SE para 512 (560) fusiones Tyco
+ 51. 102007JM: Caja de empalme RA BPEO-2/512 3M
+ 52. 102011JT: Kit de sellado termorretráctil para puerto circular en caja de empalme tipo FIST o similar Tyco
+ 53. 102011JM: Kit de Sellado Circular 3M hasta 18 mm
+ 54. 102012JT: Kit de sellado termorretráctil para puerto oval en caja de empalme tipo FIST o similar Tyco
+ 55. 102012JM: Kit de sellado puerto oval 3M 27 mm
+ 56. 102013JT: Splitter 1:4 FSASA2 premontado en bloque de 4UMS con 2 bandejas SC con las fibras preinstaladas para caja FIST Tyco
+ 57. 102018JC: Caja de empalme Corning UCAO MFT7, con bandejas de empalme para hasta 168 fusiones.
+ 58. 102018JT: Caja de empalme FOSC350C. Con bandejas de empalme para capacidad de hasta 168 fusiones. Incluye etiquetas de Orange.
+ 59. 102022JT: Caja terminal Corning UCA8, o similar, con 1 splitter 1:16 y 8 puertos de salida conectorizados y premontados marcado ORANGE Tyco
+ 60. 102023JT: Caja terminal Corning UCA16, o similar, con 1 splitter 1:16 y 16 puertos de salida conectorizados y premontados marcado ORANGE Tyco
+ 61. 102026JC: Splitter 1:16 premontado en bandeja de empalme para caja UCAx o similar Corning
+ 62. 102026JT: Splitter 1:16 premontado en bandeja de empalme para caja UCAx o similar Tyco
+ 63. 102028JT: Módulo de operador TE MOBI, o similar, marcado ORANGE Tyco
+ 64. 102029JT: Módulo de cliente TE MOBI, o similar, con 16 adaptadores SC/APC y 16 pig-tails G.657A2 SC/APC "low loss" Tyco
+ 65. 102030JT: Kit de ampliación de 4 adaptadores SC/APC y 4 pig-tails G.657A2 SC/APC "low loss"  Tyco
+ 66. 102032JT: Suministro de 16 adaptadores SC/APC y 1 splitter 1:16 para caja MOBI, o similar, con salidas G.657A2 conectorizadas en conectores SC/APC "low loss"  Tyco
+ 67. 102034J: Caja terminal multipuerto con 4 puertos Optitap®  y rabillo de 50 m marcado ORANGE Tyco
+ 68. 102035J: Caja terminal multipuerto con 4 puertos Optitap®  y rabillo de 100 m marcado ORANGE Tyco
+ 69. 102036J: Caja terminal multipuerto con 4 puertos Optitap®  y rabillo de 150 m marcado ORANGE Tyco
+ 70. 102037J: Caja terminal multipuerto con 8 puertos Optitap®  y rabillo de 50 m marcado ORANGE Tyco
+ 71. 102038J: Caja terminal multipuerto con 8 puertos Optitap®  y rabillo de 100 m marcado ORANGE Tyco
+ 72. 102039J: Caja terminal multipuerto con 8 puertos Optitap®  y rabillo de 150 m marcado ORANGE Corning
+ 73. 102040J: Caja de derivación óptica TE IFDB-M, o similar Tyco
+ 74. 102045JT: Suministro de splitter 1:4 fuera de bandeja
+ 75. 102047J: SPLITTER 1:16 FUERA DE BANDEJA (GENERICO)(SUSTITUYE A 102060J)
+ 76. 102050JT: Caja de empalme DiviCAU o similar marcado ORANGE Tyco
+ 77. 102053JE: CAJA DE EMPALME CAU HASTA 128 FUSIONES ORANGE
+ 78. 102057J: EMBELLECEDOR PARA CAJA DE DERIVACION
+ 79. 102058J: RETENEDOR PARA ACOMETIDA DIRECTA EN CTO MULTIOPRERADOR DE INTERIOR
+ 80. 102060J: (BANDEJA CON SPLITTER PARA CAJA FOSC) FOSC-TRAY-SPLT-116-1-ES07
+ 81. 102061J: CAJA MB2 FUNCIONALIDAD "OPERADOR+CLIENTE" MARCADO ORANGE
+ 82. 102062J: CAJA MB2 FUNCIONALIDAD "OPERADOR"MARCADO ORANGE
+ 83. 102067J: KIT DE SELLADO DE GEL PARA 4 CABLES DE HASTA 7MM
+ 84. 102068J: KIT DE SELLADO DE GEL PARA 1 CABLE DE HASTA 20MM
+ 85. 102069J: CAJA TERMINAL OTE16 O SIMILAR IP65C(SUSTITUYE A 102023J UCA16)
+ 86. 102073J: CAJA TERMINAL OTE16 O SIMILAR IP65C(SUSTITUYE A 102023J UCA16)
+ 87. 102075J: CAJA DE DERIVACION ESTANCA TIPO TBE-I4 O SIMILAR
+ 88. 102076J: Kit de extensión FIST de BC a BD
+ 89. 102077J: KIT DE EXTENSION FIST DE BD A BE
+ 90. 102084J: Bandeja de FO 19 ETSI F200
+ 91. 102085J: CTO mini Interior módulo de operador
+ 92. 102086J: CTO mini Interior módulo de edificio
+ 93. 102087J: RETENEDOR PARA ACOMETIDA DIRECTA EN MINI CTO MULTI
+ 94. 102089J: Caja terminal MiniCTO16 FastConnect con 16 puertos de salida
+ 95. 102091J: Caja Terminal miniOTE2-8 con 1 splitter 1:16 y 8 puertos de salida conectorizados Optitap  CTO MINI
+ 96. 102092J: SUMINISTRO DE CAJA TERMINAL OTE8 O SIMILAR IP65C
+ 97. 102093J: Caja de empalme BPEO-1,5 hasta 128 fusiones, con marcado Orange
+ 98. 102096J: Suministro de Kit de sellado de Gel para 2 cables Ø8-12 mm (para uso en FOSC350C Tyco)
+ 99. 102113J: SPLITTER 1X4 PLC EN PUNTA
+100. 102114J: Armario Intemperie CTO 48 NO DV
+101. 102115J: Armario Intemperie CTO 48 1DV16
+102. 102117J: SPLITTER 1X4 PLC PRECONECTADO
+103. 102118J: Band.F.O.19/ETSI F200 (Spli 1:4) (COLEGIOS)
+104. 102119J: Suministro de caja de empalme TENIO B6 64 fusiones
+105. 102120J: Suministro de caja de empalme TENIO C6 128 fusiones
+106. 102122J: Bandeja de F.O 19"/ETSI F200 (Splitter 1:16)
+107. 102124J: Kit Sellado salida cable para TENIO-SKG2-13/16mm
+108. 102141J: Bandeja de 32 F.O 19' equipado con 2 Splitter 1:16
+109. D+121:12915060170016: ANCLA TIPO A PARA PASOS AEREOS
+110. D08140040015: ANILLA TIPO 1 PARA GRAPA (BOLSA DE 100 UNIDADES) (CAJA DE 1000 UNIDADES)
+111. D15120060001: ARANDELA CUADRADA
+112. D15160010022: BRIDA 300X4,8(BOLSA DE 100 UNIDADES)
+113. D15160010023: BRIDA 370X7,6(BOLSA DE 100 UNIDADES)
+114. D15160010025: BRIDA/CINTILLO REUTILIZABLE KIT(INCLUYE 75 CABEZAS)
+115. D15160010025: CABEZA PARA BRIDA/CINTILLO REUTILIZABLE(SOLO CABEZA, BOLSA DE 75 UNIDADES)
+116. D06020040001: CABLE DE ACERO 1,6(CON CUBIERTA PLASTIFICADA)
+117. D15120060001: CHUPETA M16(TUERCA CANCAMO)
+118. D02180260004: CINTA AISLANTE NARANJA
+119. D02180260019: CINTA AISLANTE NEGRA
+120. D15020160005: CINTA PERFORADA PARA TUBO DE SALIDA(SOLO PARA AVERIAS)
+121. D08140430234: CONJUNTO RETENCION ANCLAJE KP ᴓ 11 MM AMARILLO 500316
+122. D08140430238: CONJUNTO RETENCION SUSPENSION KP ᴓ 11 MM AMARILLO 500317
+123. D08140430235: CONJUNTO RETENCION ANCLAJE KP ᴓ 12 MM ROJO 500318
+124. D08140430240: CONJUNTO RETENCION SUSPENSION KP ᴓ 12 MM ROJO 500319
+125. D08140430233: CONJUNTO RETENCION ANCLAJE F.O. MULTIUSOS MARRON 500321
+126. D08140430239: CONJUNTO RETENCION SUSPENSION F.O. MULTIUSOS MARRON 500330
+127. D08140430361: CONJUNTO RETENCION ANCLAJE F.O. ᴓ 18 MM ROJO 500283
+128. D08140430362: CONJUNTO RETENCION SUSPENSION F.O. ᴓ 18 MM ROJO 500291
+129. D15020020012: CUERDA NEGRA (200 METROS POR ROLLO)
+130. D15020020012: CUERDA NEGRA (1300 METROS POR ROLLO)
+131. D19040050017: DIGITO 0-9 Y GUION 20MM
+132. D19040050014: DIGITO "E" DE ORANGE
+133. U61060110003: ESCUADRA ANCLAJE PARA RETENCION CABLES DE ACOMETIDA
+134. D19040050014: ETIQUETAS ORANGE 3M(JUEGO DE 100 CON 200 BRIDAS)
+135. D08140410009: GANCHO ACERO P.AISLADOR - RETENEDOR
+136. D08140120023: GRAPA DE PARED 00 (BOLSA DE 100 UNIDADES) (CAJA DE 1200 UNIDADES)
+137. D08140120020: GRAPA DE PARED 0 DE 12MM (BOLSA DE 100 UNIDADES) (CAJA DE 1200 UNIDADES)
+138. D08140120021: GRAPA DE PARED 1 DE 16MM (BOLSA DE 100 UNIDADES) (CAJA DE 1200 UNIDADES)
+139. D08140320011: GUARDACABO Nº9
+140. D19040090004: HILO DE COSER
+141. D09260020001: MARCO CON PUERTA348X356 (PARA REGISTROS)
+142. D04060060001: MONOTUBO 25 X 2 NEGRO
+143. D04060060002: MONOTUBO 32 X 2,4 NEGRO
+144. D04060060009: MONOTUBO 40 X 2,4 NEGRO
+145. D04100030005: OBTURADOR  INFLABLE DE 25 (OKT25)
+146. D04100030002: OBTURADOR INFLABLE DE 32 (OKT32)
+147. D04100030001: OBTURADOR INFLABLE DE 40 (OKT40)
+148. D04100030003: OBTURADOR INFLABLE DE 63 (OKT63)
+149. D04100030004: OBTURADOR INFLABLE DE 110 (OKT110)
+150. D15120120072: PASANTE ESPARRAGO ROSCADO M16 (2 TUERCAS + 2 ARANDELAS)
+151. D08140240129: PREFORMADO DE AMARRE 1,6MM
+152. D08140430363: RETENEDOR F.O. ACOMETIDAS CON GANCHO
+153. D15060170014: TACO 10X25 PARA TORNILLO 6MM (BOLSA 50UNI)
+154. D15060170015: TACO M10 CON ARGOLLA
+155. D09300040026: TAPA FUNDICIÓN JC
+156. D09300040027: TAPA FUNDICIÓN HSK
+157. D09300040024: TAPA ORANGE FUNDICION JM(2 HOJAS)
+158. D09300040025: TAPA ORANGE FUNDICION JG(4 HOJAS)
+159. D07080080147: TAPON CUATRIPOLAR METAL 32MM(4-32)
+160. D07080080142: TAPON LEVA PARA 25MM
+161. D07080080143: TAPON LEVA PARA 32MM
+162. D07080080144: TAPON LEVA PARA 40MM
+163. D07080080145: TAPON TRIPOLAR METAL 32MM(3-32)
+164. D07080080146: TAPON TRIPOLAR METAL 40MM(3-40)
+165. D15060170015: TORNILLO EXPANSION M10 CON TACO
+166. D15120120039: TORNILLO ROSCA MADERA 6*30(CAJA 100UNI)
+167. D15120120100: TORNILLO ROSCA MADERA 6*60(CAJA 100UNI)
+168. D07060030039: TUBO CORRUGADO VERDE 63 mm
+169. D07060030040: TUBO CORRUGADO VERDE 110 mm
+170. D04060170013: TUBO FO 45MM PARA FUSIONES(PROTECTOR EMPALME)(BOLSA DE 100 UNIDADES)
+171. D08160050005: TUBO PG16 de ACEROFLEX
+172. D08160050006: TUBO PG21 de ACEROFLEX
+173. D08160050007: TUBO PG16 de SIN ACERO
+174. D08160050008: TUBO PG21 de SIN ACERO
+175. D07060040024: TUBO PLASTICO 40MM PARA SALIDA LATERAL(KIT CON PIE Y CONO)
+176. D15180010001: ABRAZADERA PARA TUBO DE SALIDA LATERAL

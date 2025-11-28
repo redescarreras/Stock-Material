@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test - Control de Material Fibra Óptica Online</title>
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+    
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        
+        .test-container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        .test-item {
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 8px;
+            border: 2px solid #e5e5e5;
+        }
+        
+        .test-success {
+            background: #d4edda;
+            border-color: #28a745;
+            color: #155724;
+        }
+        
+        .test-error {
+            background: #f8d7da;
+            border-color: #dc3545;
+            color: #721c24;
+        }
+        
+        .test-warning {
+            background: #fff3cd;
+            border-color: #ffc107;
+            color: #856404;
+        }
+        
+        .test-info {
+            background: #cce7ff;
+            border-color: #007bff;
+            color: #004085;
+        }
+        
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        
+        button:hover {
+            background: #0056b3;
+        }
+        
+        .btn-danger {
+            background: #dc3545;
+        }
+        
+        .btn-danger:hover {
+            background: #c82333;
+        }
+        
+        .btn-success {
+            background: #28a745;
+        }
+        
+        .btn-success:hover {
+            background: #218838;
+        }
+        
+        .status {
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        
+        .firebase-status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 20px 0;
+        }
+        
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+        
+        .status-online {
+            background: #28a745;
+        }
+        
+        .status-offline {
+            background: #dc3545;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🧪 Test - Control de Material Fibra Óptica Online</h1>
+        
+        <div class="firebase-status">
+            <span class="status-dot" id="connection-dot"></span>
+            <span id="connection-text">Verificando conexión...</span>
+        </div>
+        
+        <h2>📋 Tests de Funcionalidad</h2>
+        
+        <div class="test-item test-info" id="firebase-test">
+            <span class="status">🔥</span>
+            <strong>Firebase Connection:</strong> Verificando...
+        </div>
+        
+        <div class="test-item test-info" id="storage-test">
+            <span class="status">💾</span>
+            <strong>Storage Manager:</strong> Verificando...
+        </div>
+        
+        <div class="test-item test-info" id="materials-test">
+            <span class="status">📦</span>
+            <strong>Materiales:</strong> Verificando...
+        </div>
+        
+        <div class="test-item test-info" id="users-test">
+            <span class="status">👥</span>
+            <strong>Usuarios:</strong> Verificando...
+        </div>
+        
+        <div class="test-item test-info" id="realtime-test">
+            <span class="status">⚡</span>
+            <strong>Tiempo Real:</strong> Verificando...
+        </div>
+        
+        <h2>🛠️ Acciones de Prueba</h2>
+        
+        <button onclick="testFirebaseConnection()" class="btn-success">🔄 Test Firebase</button>
+        <button onclick="testStorageOperations()" class="btn-success">💾 Test Storage</button>
+        <button onclick="clearTestData()" class="btn-danger">🗑️ Limpiar Datos Test</button>
+        <button onclick="runAllTests()" class="btn-success">▶️ Ejecutar Todos los Tests</button>
+        
+        <h2>📊 Resultados</h2>
+        <div id="results" style="background: #f8f9fa; padding: 15px; border-radius: 8px; min-height: 100px; font-family: monospace; white-space: pre-wrap;"></div>
+        
+        <h2>🚀 Acceso a la Aplicación</h2>
+        <p>Si todos los tests pasan ✅, puedes acceder a la aplicación:</p>
+        <button onclick="window.open('index.html', '_blank')" class="btn-success" style="font-size: 18px; padding: 15px 30px;">
+            🚀 Abrir Aplicación Principal
+        </button>
+    </div>
+
+    <!-- Firebase Config -->
+    <script src="firebase-config.js"></script>
+    
+    <script>
+        // Variables globales
+        let testResults = [];
+        let firebaseConnected = false;
+        
+        // Configuración inicial
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🧪 Iniciando tests de la aplicación...');
+            
+            // Verificar estado de conexión
+            updateConnectionStatus();
+            window.addEventListener('online', updateConnectionStatus);
+            window.addEventListener('offline', updateConnectionStatus);
+            
+            // Ejecutar tests automáticamente
+            setTimeout(runAllTests, 1000);
+        });
+        
+        // Actualizar estado de conexión
+        function updateConnectionStatus() {
+            const isOnline = navigator.onLine;
+            const dot = document.getElementById('connection-dot');
+            const text = document.getElementById('connection-text');
+            
+            if (isOnline) {
+                dot.className = 'status-dot status-online';
+                text.textContent = '🟢 Online - Conectado a Firebase';
+            } else {
+                dot.className = 'status-dot status-offline';
+                text.textContent = '🔴 Offline - Sin conexión';
+            }
+        }
+        
+        // Test de conexión Firebase
+        async function testFirebaseConnection() {
+            const testElement = document.getElementById('firebase-test');
+            logResult('🔥 Test Firebase Connection', 'Iniciando...');
+            
+            try {
+                // Verificar que Firebase esté inicializado
+                if (typeof firebase === 'undefined') {
+                    throw new Error('Firebase SDK no cargado');
+                }
+                
+                // Verificar configuración
+                const app = firebase.apps[0];
+                if (!app) {
+                    throw new Error('Firebase no inicializado');
+                }
+                
+                // Test de conexión básica
+                const db = firebase.database();
+                await db.ref('.info/connected').once('value');
+                
+                testElement.className = 'test-item test-success';
+                testElement.innerHTML = '<span class="status">✅</span><strong>Firebase Connection:</strong> ¡Conexión exitosa!';
+                firebaseConnected = true;
+                logResult('🔥 Firebase', '✅ Conexión exitosa');
+                
+            } catch (error) {
+                testElement.className = 'test-item test-error';
+                testElement.innerHTML = `<span class="status">❌</span><strong>Firebase Connection:</strong> Error: ${error.message}`;
+                firebaseConnected = false;
+                logResult('🔥 Firebase', `❌ Error: ${error.message}`);
+            }
+        }
+        
+        // Test de Storage Manager
+        async function testStorageOperations() {
+            const testElement = document.getElementById('storage-test');
+            logResult('💾 Test Storage', 'Iniciando...');
+            
+            try {
+                // Verificar si storageManager existe
+                if (typeof window.storageManager === 'undefined') {
+                    throw new Error('Storage Manager no disponible');
+                }
+                
+                // Test de lectura
+                const materials = await window.storageManager.getMaterials();
+                const workers = await window.storageManager.getWorkers();
+                
+                if (!Array.isArray(materials) || !Array.isArray(workers)) {
+                    throw new Error('Datos no son arrays válidos');
+                }
+                
+                testElement.className = 'test-item test-success';
+                testElement.innerHTML = `<span class="status">✅</span><strong>Storage Manager:</strong> ${materials.length} materiales, ${workers.length} usuarios cargados`;
+                logResult('💾 Storage', `✅ ${materials.length} materiales, ${workers.length} usuarios`);
+                
+            } catch (error) {
+                testElement.className = 'test-item test-error';
+                testElement.innerHTML = `<span class="status">❌</span><strong>Storage Manager:</strong> Error: ${error.message}`;
+                logResult('💾 Storage', `❌ Error: ${error.message}`);
+            }
+        }
+        
+        // Test de materiales
+        async function testMaterials() {
+            const testElement = document.getElementById('materials-test');
+            logResult('📦 Test Materiales', 'Iniciando...');
+            
+            try {
+                const materials = await window.storageManager.getMaterials();
+                
+                if (materials.length === 0) {
+                    throw new Error('No hay materiales cargados');
+                }
+                
+                // Verificar estructura de un material
+                const firstMaterial = materials[0];
+                const requiredFields = ['code', 'name', 'category', 'stock', 'minStock'];
+                const hasAllFields = requiredFields.every(field => firstMaterial.hasOwnProperty(field));
+                
+                if (!hasAllFields) {
+                    throw new Error('Estructura de materiales incompleta');
+                }
+                
+                testElement.className = 'test-item test-success';
+                testElement.innerHTML = `<span class="status">✅</span><strong>Materiales:</strong> ${materials.length} materiales cargados correctamente`;
+                logResult('📦 Materiales', `✅ ${materials.length} materiales válidos`);
+                
+            } catch (error) {
+                testElement.className = 'test-item test-error';
+                testElement.innerHTML = `<span class="status">❌</span><strong>Materiales:</strong> Error: ${error.message}`;
+                logResult('📦 Materiales', `❌ Error: ${error.message}`);
+            }
+        }
+        
+        // Test de usuarios
+        async function testUsers() {
+            const testElement = document.getElementById('users-test');
+            logResult('👥 Test Usuarios', 'Iniciando...');
+            
+            try {
+                const workers = await window.storageManager.getWorkers();
+                
+                if (workers.length === 0) {
+                    throw new Error('No hay usuarios cargados');
+                }
+                
+                // Verificar que hay al menos un admin y un trabajador
+                const admins = workers.filter(w => w.role === 'administrador');
+                const trabajadores = workers.filter(w => w.role === 'trabajador');
+                
+                if (admins.length === 0 || trabajadores.length === 0) {
+                    throw new Error('Faltan administradores o trabajadores');
+                }
+                
+                testElement.className = 'test-item test-success';
+                testElement.innerHTML = `<span class="status">✅</span><strong>Usuarios:</strong> ${admins.length} admins, ${trabajadores.length} trabajadores`;
+                logResult('👥 Usuarios', `✅ ${admins.length} admins, ${trabajadores.length} trabajadores`);
+                
+            } catch (error) {
+                testElement.className = 'test-item test-error';
+                testElement.innerHTML = `<span class="status">❌</span><strong>Usuarios:</strong> Error: ${error.message}`;
+                logResult('👥 Usuarios', `❌ Error: ${error.message}`);
+            }
+        }
+        
+        // Test de tiempo real
+        async function testRealtime() {
+            const testElement = document.getElementById('realtime-test');
+            logResult('⚡ Test Tiempo Real', 'Iniciando...');
+            
+            try {
+                if (!firebaseConnected) {
+                    throw new Error('Firebase no conectado');
+                }
+                
+                // Configurar listener temporal
+                const db = firebase.database();
+                let listenerCalled = false;
+                
+                const testRef = db.ref('test_realtime');
+                const testData = { timestamp: Date.now(), test: true };
+                
+                // Escribir dato
+                await testRef.set(testData);
+                
+                // Configurar listener
+                const unsubscribe = testRef.on('value', (snapshot) => {
+                    if (snapshot.exists()) {
+                        listenerCalled = true;
+                    }
+                });
+                
+                // Esperar un poco para que se ejecute el listener
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                
+                // Limpiar
+                await testRef.remove();
+                unsubscribe();
+                
+                if (!listenerCalled) {
+                    throw new Error('Listener de tiempo real no funcionó');
+                }
+                
+                testElement.className = 'test-item test-success';
+                testElement.innerHTML = '<span class="status">✅</span><strong>Tiempo Real:</strong> Sincronización funcionando';
+                logResult('⚡ Tiempo Real', '✅ Sincronización activa');
+                
+            } catch (error) {
+                testElement.className = 'test-item test-error';
+                testElement.innerHTML = `<span class="status">❌</span><strong>Tiempo Real:</strong> Error: ${error.message}`;
+                logResult('⚡ Tiempo Real', `❌ Error: ${error.message}`);
+            }
+        }
+        
+        // Limpiar datos de prueba
+        async function clearTestData() {
+            if (confirm('¿Estás seguro de que quieres limpiar todos los datos de prueba? Esto no afectará los datos de Firebase.')) {
+                // Limpiar localStorage
+                localStorage.removeItem('fibra_optica_materials');
+                localStorage.removeItem('fibra_optica_movements');
+                localStorage.removeItem('fibra_optica_workers');
+                localStorage.removeItem('fibra_optica_settings');
+                
+                logResult('🗑️ Limpieza', '✅ Datos de prueba limpiados');
+                alert('✅ Datos de prueba limpiados. Recarga la página para continuar.');
+            }
+        }
+        
+        // Ejecutar todos los tests
+        async function runAllTests() {
+            logResult('▶️ Tests', '🚀 Iniciando suite completa de tests...\n');
+            
+            try {
+                await testFirebaseConnection();
+                await new Promise(resolve => setTimeout(resolve, 500));
+                
+                await testStorageOperations();
+                await new Promise(resolve => setTimeout(resolve, 500));
+                
+                await testMaterials();
+                await new Promise(resolve => setTimeout(resolve, 500));
+                
+                await testUsers();
+                await new Promise(resolve => setTimeout(resolve, 500));
+                
+                await testRealtime();
+                
+                logResult('✅ Tests Completos', '🎉 Suite de tests finalizada');
+                
+            } catch (error) {
+                logResult('❌ Error en Tests', `💥 Error inesperado: ${error.message}`);
+            }
+        }
+        
+        // Función de logging
+        function logResult(category, message) {
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = `[${timestamp}] ${category}: ${message}`;
+            testResults.push(logEntry);
+            
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.textContent = testResults.join('\n');
+            resultsDiv.scrollTop = resultsDiv.scrollHeight;
+            
+            console.log(logEntry);
+        }
+    </script>
+</body>
+</html>

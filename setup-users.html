@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configuración Inicial - Fibra Óptica</title>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .header {
+            text-align: center;
+            color: #0066FF;
+            margin-bottom: 30px;
+        }
+        .status {
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .loading {
+            background-color: #cce7ff;
+            color: #004085;
+            border: 1px solid #99d1ff;
+        }
+        .users-list {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .user-item {
+            padding: 8px;
+            border-bottom: 1px solid #dee2e6;
+            display: flex;
+            justify-content: space-between;
+        }
+        .user-item:last-child {
+            border-bottom: none;
+        }
+        .role-badge {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            color: white;
+        }
+        .admin-badge {
+            background-color: #dc3545;
+        }
+        .worker-badge {
+            background-color: #28a745;
+        }
+        button {
+            background: #0066FF;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+        }
+        button:hover {
+            background: #0052cc;
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>⚙️ Configuración Inicial</h1>
+            <h2>Control de Material - Fibra Óptica</h2>
+            <p>Esta página inicializará Firebase con los datos originales de la aplicación</p>
+        </div>
+
+        <div id="status"></div>
+
+        <div class="users-list" id="users-list" style="display: none;">
+            <h3>Usuarios que serán creados:</h3>
+            <div id="users-container"></div>
+        </div>
+
+        <div style="text-align: center; margin-top: 30px;">
+            <button id="setup-btn" onclick="setupFirebase()">🚀 Configurar Firebase</button>
+            <button id="test-btn" onclick="testConnection()" style="background: #28a745;">🧪 Probar Conexión</button>
+        </div>
+
+        <div style="margin-top: 30px; padding: 20px; background: #fff3cd; border-radius: 5px; border: 1px solid #ffeeba;">
+            <h4>⚠️ Instrucciones importantes:</h4>
+            <ol>
+                <li><strong>Solo ejecutar una vez:</strong> Esta configuración debe ejecutarse solo la primera vez</li>
+                <li><strong>Datos originales:</strong> Se crearán los usuarios exactos de la aplicación local</li>
+                <li><strong>Contraseñas:</strong> Los administradores usan "admin123", los trabajadores "1234"</li>
+                <li><strong>Después de configurar:</strong> Podrás usar la aplicación normalmente</li>
+            </ol>
+        </div>
+    </div>
+
+    <script>
+        // Configuración Firebase
+        const firebaseConfig = {
+            apiKey: 'AIzaSyDN-D2ppaXbjT_rT74d2dXaOtWqib3zBQ0',
+            authDomain: 'stock-material-28674.firebaseapp.com',
+            databaseURL: 'https://stock-material-28674-default-rtdb.europe-west1.firebasedatabase.app',
+            projectId: 'stock-material-28674',
+            storageBucket: 'stock-material-28674.firebasestorage.app',
+            messagingSenderId: '994809951058',
+            appId: '1:994809951058:web:31d0cd19f4dcf49b84408b'
+        };
+
+        let firebaseApp;
+        let database;
+
+        // Usuarios originales de la aplicación
+        const defaultWorkers = [
+            {
+                id: 'ADMIN001',
+                code: 'ADMIN001',
+                name: 'BORJA CARRERAS MARTIN',
+                email: 'borja@empresa.com',
+                phone: '123456789',
+                role: 'administrador',
+                status: 'activo',
+                registrationDate: '2024-01-01',
+                notes: 'Administrador del sistema',
+                password: 'admin123'
+            },
+            {
+                id: 'ADMIN002',
+                code: 'ADMIN002',
+                name: 'JUAN SIMON DE LA FUENTE',
+                email: 'juansimon@empresa.com',
+                phone: '987654321',
+                role: 'administrador',
+                status: 'activo',
+                registrationDate: '2024-01-01',
+                notes: 'Administrador del sistema',
+                password: 'admin123'
+            },
+            {
+                id: 'ADMIN003',
+                code: 'ADMIN003',
+                name: 'ALEXANDER ARROYAVE',
+                email: 'alexander@empresa.com',
+                phone: '987654322',
+                role: 'administrador',
+                status: 'activo',
+                registrationDate: '2024-01-01',
+                notes: 'Administrador del sistema',
+                password: 'admin123'
+            },
+            {
+                id: 'TRAB001',
+                code: 'TRAB001',
+                name: 'JOSE ANTONIO CARRERAS MARTIN',
+                email: 'jantonio@empresa.com',
+                phone: '555123456',
+                role: 'trabajador',
+                status: 'activo',
+                registrationDate: '2024-01-15',
+                notes: 'Trabajador de campo',
+                password: '1234'
+            },
+            {
+                id: 'TRAB002',
+                code: 'TRAB002',
+                name: 'LUIS MIGUEL HIDALGO EGEA',
+                email: 'lmiguel@empresa.com',
+                phone: '555789012',
+                role: 'trabajador',
+                status: 'activo',
+                registrationDate: '2024-01-15',
+                notes: 'Trabajador de campo',
+                password: '1234'
+            },
+            {
+                id: 'TRAB003',
+                code: 'TRAB003',
+                name: 'DAVID MORENO GÓMEZ',
+                email: 'dmoreno@empresa.com',
+                phone: '555345678',
+                role: 'trabajador',
+                status: 'activo',
+                registrationDate: '2024-01-20',
+                notes: 'Trabajador de campo',
+                password: '1234'
+            },
+            {
+                id: 'TRAB004',
+                code: 'TRAB004',
+                name: 'AARON LOPEZ MUÑOZ',
+                email: 'alopez@empresa.com',
+                phone: '555456789',
+                role: 'trabajador',
+                status: 'activo',
+                registrationDate: '2024-01-22',
+                notes: 'Trabajador de campo',
+                password: '1234'
+            },
+            {
+                id: 'TRAB005',
+                code: 'TRAB005',
+                name: 'EDGAR ALONSO SANCHEZ SUAREZ',
+                email: 'ealonso@empresa.com',
+                phone: '555567890',
+                role: 'trabajador',
+                status: 'activo',
+                registrationDate: '2024-01-25',
+                notes: 'Trabajador de campo',
+                password: '1234'
+            },
+            {
+                id: 'TRAB006',
+                code: 'TRAB006',
+                name: 'JAVIER CARRERAS MARTIN',
+                email: 'jcarreras@empresa.com',
+                phone: '555678901',
+                role: 'trabajador',
+                status: 'activo',
+                registrationDate: '2024-01-28',
+                notes: 'Trabajador de campo',
+                password: '1234'
+            },
+            {
+                id: 'TRAB007',
+                code: 'TRAB007',
+                name: 'JUAN PEDRO SUAREZ DELGADO',
+                email: 'jpsuarez@empresa.com',
+                phone: '555789012',
+                role: 'trabajador',
+                status: 'activo',
+                registrationDate: '2024-02-01',
+                notes: 'Trabajador de campo',
+                password: '1234'
+            },
+            {
+                id: 'TRAB008',
+                code: 'TRAB008',
+                name: 'JOSE FERNANDO SANCHEZ MARULANDA',
+                email: 'jfsanchez@empresa.com',
+                phone: '555890123',
+                role: 'trabajador',
+                status: 'activo',
+                registrationDate: '2024-02-05',
+                notes: 'Trabajador de campo',
+                password: '1234'
+            },
+            {
+                id: 'TRAB009',
+                code: 'TRAB009',
+                name: 'ANTONIO MANUEL LOPEZ GARCÍA',
+                email: 'amlopez@empresa.com',
+                phone: '555901234',
+                role: 'trabajador',
+                status: 'activo',
+                registrationDate: '2024-02-08',
+                notes: 'Trabajador de campo',
+                password: '1234'
+            }
+        ];
+
+        // Configuración inicial
+        const defaultSettings = {
+            companyName: 'Empresa de Fibra Óptica',
+            lowStockThreshold: 20,
+            dateFormat: 'DD/MM/YYYY',
+            language: 'es',
+            notifications: {
+                lowStock: true,
+                newMovements: false,
+                systemUpdates: true
+            },
+            backup: {
+                autoBackup: true,
+                backupInterval: 24,
+                lastBackup: null
+            }
+        };
+
+        // Inicializar Firebase
+        function initializeFirebase() {
+            try {
+                firebaseApp = firebase.initializeApp(firebaseConfig);
+                database = firebase.database();
+                console.log('Firebase inicializado correctamente');
+                return true;
+            } catch (error) {
+                console.error('Error inicializando Firebase:', error);
+                return false;
+            }
+        }
+
+        // Mostrar estado
+        function showStatus(message, type = 'info') {
+            const statusDiv = document.getElementById('status');
+            statusDiv.innerHTML = `<div class="status ${type}">${message}</div>`;
+        }
+
+        // Probar conexión
+        async function testConnection() {
+            showStatus('🔄 Probando conexión con Firebase...', 'loading');
+            document.getElementById('test-btn').disabled = true;
+
+            if (!initializeFirebase()) {
+                showStatus('❌ Error al inicializar Firebase', 'error');
+                document.getElementById('test-btn').disabled = false;
+                return;
+            }
+
+            try {
+                // Probar lectura de la base de datos
+                const snapshot = await database.ref('/').once('value');
+                console.log('Conexión exitosa con Firebase');
+                showStatus('✅ Conexión exitosa con Firebase. La aplicación está lista.', 'success');
+                
+                // Mostrar usuarios que se van a crear
+                showUsersList();
+                
+            } catch (error) {
+                console.error('Error en conexión:', error);
+                showStatus('❌ Error de conexión: ' + error.message, 'error');
+            }
+
+            document.getElementById('test-btn').disabled = false;
+        }
+
+        // Configurar Firebase con datos originales
+        async function setupFirebase() {
+            showStatus('🔄 Configurando Firebase con datos originales...', 'loading');
+            document.getElementById('setup-btn').disabled = true;
+
+            if (!initializeFirebase()) {
+                showStatus('❌ Error al inicializar Firebase', 'error');
+                document.getElementById('setup-btn').disabled = false;
+                return;
+            }
+
+            try {
+                // Verificar si ya existen datos
+                const existingData = await database.ref('/').once('value');
+                if (existingData.exists()) {
+                    showStatus('⚠️ Firebase ya contiene datos. ¿Deseas sobrescribir?', 'error');
+                    const overwrite = confirm('¿Estás seguro de que quieres sobrescribir los datos existentes? Esta acción no se puede deshacer.');
+                    if (!overwrite) {
+                        document.getElementById('setup-btn').disabled = false;
+                        return;
+                    }
+                }
+
+                // Escribir usuarios
+                console.log('Escribiendo usuarios...');
+                await database.ref('workers').set(defaultWorkers);
+                
+                // Escribir configuración
+                console.log('Escribiendo configuración...');
+                await database.ref('settings').set(defaultSettings);
+                
+                // Inicializar arrays vacíos
+                console.log('Inicializando arrays...');
+                await database.ref('movements').set([]);
+                await database.ref('currentSession').set(null);
+
+                showStatus('✅ Firebase configurado correctamente con los datos originales!', 'success');
+                
+                // Mostrar instrucciones finales
+                setTimeout(() => {
+                    showStatus(`✅ ¡Configuración completada!<br><br>
+                    <strong>Ahora puedes:</strong><br>
+                    1. Abrir <strong>index.html</strong> para usar la aplicación<br>
+                    2. Usar cualquiera de los usuarios creados (contraseñas: admin123 para admins, 1234 para trabajadores)<br>
+                    3. Todas las funcionalidades están listas incluyendo las 6 nuevas características solicitadas`, 'success');
+                }, 2000);
+
+            } catch (error) {
+                console.error('Error configurando Firebase:', error);
+                showStatus('❌ Error configurando Firebase: ' + error.message, 'error');
+            }
+
+            document.getElementById('setup-btn').disabled = false;
+        }
+
+        // Mostrar lista de usuarios
+        function showUsersList() {
+            const usersList = document.getElementById('users-list');
+            const usersContainer = document.getElementById('users-container');
+            
+            let html = '';
+            defaultWorkers.forEach(worker => {
+                const roleClass = worker.role === 'administrador' ? 'admin-badge' : 'worker-badge';
+                const roleText = worker.role === 'administrador' ? 'Admin' : 'Trabajador';
+                
+                html += `
+                    <div class="user-item">
+                        <div>
+                            <strong>${worker.name}</strong><br>
+                            <small>${worker.code} - ${worker.email}</small>
+                        </div>
+                        <div>
+                            <span class="role-badge ${roleClass}">${roleText}</span><br>
+                            <small><strong>Pass:</strong> ${worker.password}</small>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            usersContainer.innerHTML = html;
+            usersList.style.display = 'block';
+        }
+
+        // Auto-inicializar al cargar la página
+        window.onload = function() {
+            showStatus('🔄 Inicializando página...', 'loading');
+            
+            // Auto-probar conexión al cargar
+            setTimeout(() => {
+                testConnection();
+            }, 500);
+        };
+    </script>
+</body>
+</html>

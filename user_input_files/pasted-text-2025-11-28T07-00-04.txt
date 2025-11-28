@@ -1,0 +1,205 @@
+101001J	Cable de f.o. de exterior PKP holgado de 8 fo.	cables	1000 metros	100 metros	normal	✏️ Editar
+101003J	Cable de f.o. de exterior PKP holgado de 16 fo.	cables	1000 metros	100 metros	normal	✏️ Editar
+101004J	Cable de f.o. de exterior PKP holgado de 24 fo.	cables	800 metros	50 metros	normal	✏️ Editar
+101005J	Cable de f.o. de exterior PKP holgado de 32 fo.	cables	600 metros	50 metros	normal	✏️ Editar
+101006J	Cable de f.o. de exterior PKP holgado de 48 fo.	cables	1000 metros	100 metros	normal	✏️ Editar
+101007J	Cable de f.o. de exterior PKP holgado de 64 fo.	cables	300 metros	20 metros	normal	✏️ Editar
+101008J	Cable de f.o. de exterior PKP holgado de 128 fo.	cables	1000 metros	100 metros	normal	✏️ Editar
+101009J	Cable de f.o. de exterior PKP holgado de 256 fo.	cables	200 metros	20 metros	normal	✏️ Editar
+101010J	Cable de f.o. de interior KT de 8 fo.	cables	1000 metros	100 metros	normal	✏️ Editar
+101016J	Cable de f.o. de interior TKT de 16 fo.	cables	1000 metros	100 metros	normal	✏️ Editar
+101017J	Cable de f.o. de interior TKT de 24 fo.	cables	800 metros	50 metros	normal	✏️ Editar
+101018J	Cable de f.o. de interior TKT de 32 fo.	cables	600 metros	50 metros	normal	✏️ Editar
+101019J	Cable de f.o. de interior TKT de 48 fo.	cables	1000 metros	100 metros	normal	✏️ Editar
+101020J	Cable de f.o. de interior TKT de 64 fo.	cables	300 metros	20 metros	normal	✏️ Editar
+101021J	Cable de f.o. de interior TKT de 128 fo.	cables	1000 metros	100 metros	normal	✏️ Editar
+101022J	Cable de f.o. de interior TKT de 256 fo.	cables	200 metros	20 metros	normal	✏️ Editar
+101023J	Cable de f.o. de interior KT de 512 fo.	cables	200 metros	20 metros	normal	✏️ Editar
+101074J	Cable de f.o. 16 VT.	cables	200 metros	20 metros	normal	✏️ Editar
+101075J	Cable de f.o. 32 VT.	cables	200 metros	20 metros	normal	✏️ Editar
+101076J	Cable de f.o. 64 VT.	cables	200 metros	20 metros	normal	✏️ Editar
+102001JT	Caja de empalme TE FIST-GCO2-BC8	repartidores	25 unidades	5 unidades	normal	✏️ Editar
+102002JT	Caja de empalme TE FIST-GCO2-BC8 128 fusiones	repartidores	20 unidades	3 unidades	normal	✏️ Editar
+102003JM	Caja de empalme RA BPEO-2/128 3M	repartidores	20 unidades	3 unidades	normal	✏️ Editar
+102004JT	Caja de empalme TE FIST-GCO2-BC8 256 fusiones	repartidores	15 unidades	2 unidades	normal	✏️ Editar
+102005JM	Caja de empalme RA BPEO-2/256 3M	repartidores	15 unidades	2 unidades	normal	✏️ Editar
+102011JT	Kit de sellado termorretráctil puerto circular	repartidores	35 unidades	5 unidades	normal	✏️ Editar
+102011JM	Kit de Sellado Circular 3M hasta 18 mm	repartidores	30 unidades	5 unidades	normal	✏️ Editar
+102012JT	Kit de sellado puerto oval FIST	repartidores	35 unidades	5 unidades	normal	✏️ Editar
+102012JM	Kit de sellado puerto oval 3M 27 mm	repartidores	35 unidades	5 unidades	normal	✏️ Editar
+201001J	Conector SC/APC	conectores	500 unidades	50 unidades	normal	✏️ Editar
+201002J	Conector LC/APC	conectores	500 unidades	50 unidades	normal	✏️ Editar
+201003J	Pigtail SC/APC 2m	conectores	200 unidades	20 unidades	normal	✏️ Editar
+201004J	Pigtail LC/APC 2m	conectores	200 unidades	20 unidades	normal	✏️ Editar
+201005J	Adaptador SC/APC Duplex	conectores	300 unidades	30 unidades	normal	✏️ Editar
+201006J	Adaptador LC/APC Duplex	conectores	300 unidades	30 unidades	normal	✏️ Editar
+301001J	Manguito termorretráctil 40mm	menudo	100 unidades	10 unidades	normal	✏️ Editar
+301002J	Manguito termorretráctil 60mm	menudo	100 unidades	10 unidades	normal	✏️ Editar
+301003J	Brida plástica 200x4.8mm	menudo	50 bolsas	5 bolsas	normal	✏️ Editar
+301004J	Grapa de pared 12mm	menudo	50 bolsas	5 bolsas	normal	✏️ Editar
+301005J	Grapa de pared 16mm	menudo	50 bolsas	5 bolsas	normal	✏️ Editar
+301006J	Tubo protector 32mm	menudo	1000 metros	100 metros	normal	✏️ Editar
+301007J	Tubo protector 40mm	menudo	800 metros	80 metros	normal	✏️ Editar
+301008J	Cinta aislante naranja	menudo	50 unidades	5 unidades	normal	✏️ Editar
+301009J	Cinta aislante negra	menudo	50 unidades	5 unidades	normal	✏️ Editar
+401001J	Cortadora de fibra óptica	herramientas	5 unidades	1 unidades	normal	✏️ Editar
+401002J	Empalmadora de fibra	herramientas	3 unidades	1 unidades	normal	✏️ Editar
+401003J	Detector de potencia óptica	herramientas	10 unidades	2 unidades	normal	✏️ Editar
+401004J	Pelacables de fibra	herramientas	15 unidades	3 unidades	normal	✏️ Editar
+401005J	Linterna UV para inspección	herramientas	8 unidades	2 unidades	normal	✏️ Editar
+501001J	OTDR Portátil	equipos	2 unidades	1 unidades	normal	✏️ Editar
+501002J	Fuente de luz láser	equipos	3 unidades	1 unidades	normal	✏️ Editar
+501003J	Medidor de potencia	equipos	4 unidades	1 unidades	normal	✏️ Editar
+501004J	Localizador visual de fallos	equipos	5 unidades	1 unidades	normal	✏️ Editar
+501005J	Cortadora de precisión	equipos	3 unidades	1 unidades	normal	✏️ Editar
+601001J	Antena sectorial LTE 2x2 MIMO	rf	15 unidades	3 unidades	normal	✏️ Editar
+601002J	Antena sectorial LTE 4x4 MIMO	rf	12 unidades	2 unidades	normal	✏️ Editar
+601003J	BTS (Estación Base)	rf	8 unidades	1 unidades	normal	✏️ Editar
+601004J	Router 4G/5G industrial	rf	20 unidades	3 unidades	normal	✏️ Editar
+601005J	Módem 5G USB	rf	25 unidades	5 unidades	normal	✏️ Editar
+601006J	Antena direccional 5G	rf	18 unidades	3 unidades	normal	✏️ Editar
+601007J	Repeater 4G LTE	rf	10 unidades	2 unidades	normal	✏️ Editar
+601008J	Amplificador de señal RF	rf	15 unidades	3 unidades	normal	✏️ Editar
+602001J	GPS Garmin específico	gps	12 unidades	2 unidades	normal	✏️ Editar
+602002J	Antena GPS activa	gps	30 unidades	5 unidades	normal	✏️ Editar
+602003J	Antena GPS pasiva	gps	25 unidades	5 unidades	normal	✏️ Editar
+602004J	Módulo GPS para dispositivos	gps	50 unidades	10 unidades	normal	✏️ Editar
+602005J	Cable GPS	gps	100 unidades	20 unidades	normal	✏️ Editar
+603001J	Cámara de seguridad IP	seguridad	20 unidades	3 unidades	normal	✏️ Editar
+603002J	Sistema de videovigilancia	seguridad	5 sistemas	1 sistemas	normal	✏️ Editar
+603003J	Tarjeta de memoria microSD	seguridad	100 unidades	20 unidades	normal	✏️ Editar
+603004J	Sensor de movimiento PIR	seguridad	30 unidades	5 unidades	normal	✏️ Editar
+603005J	Sirena de alarma	seguridad	15 unidades	3 unidades	normal	✏️ Editar
+603006J	Control de acceso RFID	seguridad	8 sistemas	2 sistemas	normal	✏️ Editar
+603007J	Tarjetas RFID	seguridad	25 packs	5 packs	normal	✏️ Editar
+603008J	Cerradura electrónica	seguridad	12 unidades	2 unidades	normal	✏️ Editar
+701001J	Cable UTP Cat 5e	cobre	5000 metros	500 metros	normal	✏️ Editar
+701002J	Cable UTP Cat 6	cobre	3000 metros	300 metros	normal	✏️ Editar
+701003J	Cable UTP Cat 6A	cobre	2000 metros	200 metros	normal	✏️ Editar
+701004J	Cable FTP Cat 6	cobre	1500 metros	150 metros	normal	✏️ Editar
+701005J	Cable Coaxial RG6	cobre	1000 metros	100 metros	normal	✏️ Editar
+701006J	Cable Coaxial RG59	cobre	800 metros	80 metros	normal	✏️ Editar
+701007J	Cable telefónico RJ11	cobre	2000 metros	200 metros	normal	✏️ Editar
+701008J	Cable de alimentación 2.5mm²	cobre	1000 metros	100 metros	normal	✏️ Editar
+701009J	Cable de alimentación 4mm²	cobre	800 metros	80 metros	normal	✏️ Editar
+701010J	Cable de alimentación 6mm²	cobre	600 metros	60 metros	normal	✏️ Editar
+702001J	Conector RJ45 Cat 6	cobre	200 unidades	20 unidades	normal	✏️ Editar
+702002J	Conector RJ45 Cat 6A	cobre	150 unidades	15 unidades	normal	✏️ Editar
+702003J	Conector BNC	cobre	100 unidades	10 unidades	normal	✏️ Editar
+702004J	Conector F	cobre	150 unidades	15 unidades	normal	✏️ Editar
+702005J	Regleta 6 puestos	cobre	50 unidades	5 unidades	normal	✏️ Editar
+702006J	Regleta 12 puestos	cobre	30 unidades	3 unidades	normal	✏️ Editar
+702007J	Switch PoE 8 puertos	cobre	15 unidades	2 unidades	normal	✏️ Editar
+702008J	Switch PoE 16 puertos	cobre	10 unidades	2 unidades	normal	✏️ Editar
+702009J	Switch PoE 24 puertos	cobre	8 unidades	1 unidades	normal	✏️ Editar
+702010J	Router empresarial	cobre	12 unidades	2 unidades	normal	✏️ Editar
+801001J	Bandeja portacables	accesorios	50 unidades	10 unidades	normal	✏️ Editar
+801002J	Canaleta PVC blanca	accesorios	200 metros	20 metros	normal	✏️ Editar
+801003J	Canaleta PVC negra	accesorios	150 metros	15 metros	normal	✏️ Editar
+801004J	Tubo corrugado 32mm	accesorios	500 metros	50 metros	normal	✏️ Editar
+801005J	Tubo corrugado 50mm	accesorios	300 metros	30 metros	normal	✏️ Editar
+801006J	Tubo corrugado 80mm	accesorios	200 metros	20 metros	normal	✏️ Editar
+801007J	Caja de derivación exterior	accesorios	40 unidades	5 unidades	normal	✏️ Editar
+801008J	Caja de derivación interior	accesorios	60 unidades	10 unidades	normal	✏️ Editar
+801009J	Soporte de antena	accesorios	25 unidades	5 unidades	normal	✏️ Editar
+801010J	Mástil de antena 3m	accesorios	20 unidades	3 unidades	normal	✏️ Editar
+201007J	Pigtail SC/UPC 2m	conectores	150 unidades	15 unidades	normal	✏️ Editar
+201008J	Pigtail LC/UPC 2m	conectores	150 unidades	15 unidades	normal	✏️ Editar
+201009J	Adaptador SC/UPC Duplex	conectores	200 unidades	20 unidades	normal	✏️ Editar
+201010J	Adaptador LC/UPC Duplex	conectores	200 unidades	20 unidades	normal	✏️ Editar
+201011J	Sleeve SC/APC	conectores	100 unidades	10 unidades	normal	✏️ Editar
+201012J	Sleeve LC/APC	conectores	100 unidades	10 unidades	normal	✏️ Editar
+201013J	Pigtail SC/APC 1m	conectores	200 unidades	20 unidades	normal	✏️ Editar
+201014J	Pigtail LC/APC 1m	conectores	200 unidades	20 unidades	normal	✏️ Editar
+201015J	Patch cord SC/APC 3m	conectores	100 unidades	10 unidades	normal	✏️ Editar
+201016J	Patch cord LC/APC 3m	conectores	100 unidades	10 unidades	normal	✏️ Editar
+201017J	Patch cord SC/APC 5m	conectores	80 unidades	8 unidades	normal	✏️ Editar
+201018J	Patch cord LC/APC 5m	conectores	80 unidades	8 unidades	normal	✏️ Editar
+201019J	Adaptador simplex SC/APC	conectores	150 unidades	15 unidades	normal	✏️ Editar
+201020J	Adaptador simplex LC/APC	conectores	150 unidades	15 unidades	normal	✏️ Editar
+102013JT	Caja de empalme TE FIST-GCO2-BC4	repartidores	20 unidades	3 unidades	normal	✏️ Editar
+102014JM	Caja de empalme RA BPEO-2/64 3M	repartidores	18 unidades	2 unidades	normal	✏️ Editar
+102015JT	Caja de empalme TE FIST-GCO2-BC12	repartidores	15 unidades	2 unidades	normal	✏️ Editar
+102016JM	Caja de empalme RA BPEO-2/12 3M	repartidores	20 unidades	3 unidades	normal	✏️ Editar
+102017JT	Splitter PLC 1:8 SC/APC	repartidores	25 unidades	3 unidades	normal	✏️ Editar
+102018JT	Splitter PLC 1:16 SC/APC	repartidores	20 unidades	2 unidades	normal	✏️ Editar
+102019JM	Splitter PLC 1:32 SC/APC	repartidores	15 unidades	2 unidades	normal	✏️ Editar
+102020JT	Splitter PLC 1:4 LC/APC	repartidores	20 unidades	3 unidades	normal	✏️ Editar
+102021JM	Splitter PLC 1:8 LC/APC	repartidores	18 unidades	2 unidades	normal	✏️ Editar
+102022JT	Splitter PLC 1:16 LC/APC	repartidores	12 unidades	2 unidades	normal	✏️ Editar
+101024J	Cable de f.o. de exterior ADSS 24 fo.	cables	1000 metros	100 metros	normal	✏️ Editar
+101025J	Cable de f.o. de exterior ADSS 48 fo.	cables	800 metros	80 metros	normal	✏️ Editar
+101026J	Cable de f.o. de exterior ADSS 72 fo.	cables	500 metros	50 metros	normal	✏️ Editar
+101027J	Cable de f.o. de exterior ADSS 96 fo.	cables	300 metros	30 metros	normal	✏️ Editar
+101028J	Cable de f.o. autoportante 8 fo.	cables	1500 metros	150 metros	normal	✏️ Editar
+101029J	Cable de f.o. autoporant 16 fo.	cables	1200 metros	120 metros	normal	✏️ Editar
+101030J	Cable de f.o. autoporant 24 fo.	cables	1000 metros	100 metros	normal	✏️ Editar
+101031J	Cable de f.o. armoured 8 fo.	cables	800 metros	80 metros	normal	✏️ Editar
+101032J	Cable de f.o. armoured 16 fo.	cables	600 metros	60 metros	normal	✏️ Editar
+101033J	Cable de f.o. armoured 24 fo.	cables	500 metros	50 metros	normal	✏️ Editar
+301010J	Tira de LED UV	menudo	30 unidades	5 unidades	normal	✏️ Editar
+301011J	Batería recargable	menudo	40 unidades	8 unidades	normal	✏️ Editar
+301012J	Cargador rápido	menudo	15 unidades	3 unidades	normal	✏️ Editar
+301013J	Esponja de limpieza	menudo	80 unidades	10 unidades	normal	✏️ Editar
+301014J	Alcohol isopropílico	menudo	20 unidades	4 unidades	normal	✏️ Editar
+301015J	Guantes de nitrilo	menudo	200 pares	50 pares	normal	✏️ Editar
+301016J	Guantes de nitrilo grandes	menudo	200 pares	50 pares	normal	✏️ Editar
+301017J	Toallitas de limpieza	menudo	100 unidades	20 unidades	normal	✏️ Editar
+301018J	Aspiradora portátil	menudo	8 unidades	2 unidades	normal	✏️ Editar
+301019J	Compresor de aire	menudo	5 unidades	1 unidades	normal	✏️ Editar
+101034J	Cable de f.o. PKP holgado 512 fo	cables	150 metros	15 metros	normal	✏️ Editar
+101035J	Cable de f.o. KP holgado 768 fo	cables	100 metros	10 metros	normal	✏️ Editar
+101036J	Cable de f.o. KP compacto 864 fo	cables	80 metros	8 metros	normal	✏️ Editar
+101037J	Cable de f.o. KP compacto 912 fo	cables	60 metros	6 metros	normal	✏️ Editar
+101038J	Cable de f.o. G.652.D BLANCO 32 fo	cables	500 metros	50 metros	normal	✏️ Editar
+101039J	Cable de f.o. G.657 A2 BLANCO 64 fo	cables	300 metros	30 metros	normal	✏️ Editar
+101040J	Cable de f.o. riser interior 16 fo	cables	800 metros	80 metros	normal	✏️ Editar
+101041J	Cable de f.o. riser exterior 24 fo	cables	600 metros	60 metros	normal	✏️ Editar
+101042J	Cable de f.o. riser interior 32 fo	cables	500 metros	50 metros	normal	✏️ Editar
+101043J	Cable de f.o. riser exterior 48 fo	cables	400 metros	40 metros	normal	✏️ Editar
+102023JT	Caja UCAO/UCA Corning hasta 168 fusiones	repartidores	12 unidades	2 unidades	normal	✏️ Editar
+102024JM	Caja FOSC350C con etiquetas Orange	repartidores	15 unidades	2 unidades	normal	✏️ Editar
+102025JT	Caja terminal UCA8 con splitter 1:16	repartidores	20 unidades	3 unidades	normal	✏️ Editar
+102026JM	Caja terminal UCA16 con splitter 1:16	repartidores	15 unidades	2 unidades	normal	✏️ Editar
+102027JT	Caja MOBI operador con adaptadores SC/APC	repartidores	25 unidades	5 unidades	normal	✏️ Editar
+102028JM	Caja MOBI cliente con adaptadores SC/APC	repartidores	30 unidades	5 unidades	normal	✏️ Editar
+102029JT	Caja multipuerto Optitap® 4 puertos 50m	repartidores	18 unidades	3 unidades	normal	✏️ Editar
+102030JM	Caja multipuerto Optitap® 8 puertos 100m	repartidores	15 unidades	2 unidades	normal	✏️ Editar
+102031JT	Caja OTE16 IP65C	repartidores	12 unidades	2 unidades	normal	✏️ Editar
+102032JM	Caja OTE8 IP65C	repartidores	15 unidades	2 unidades	normal	✏️ Editar
+102033JT	Armario intemperie CTO 48	repartidores	8 unidades	1 unidades	normal	✏️ Editar
+102034JM	Caja TENIO B6 64 fusiones	repartidores	10 unidades	2 unidades	normal	✏️ Editar
+102035JT	Caja TENIO C6 128 fusiones	repartidores	8 unidades	1 unidades	normal	✏️ Editar
+102036JM	Módulo CTO mini interior	repartidores	30 unidades	5 unidades	normal	✏️ Editar
+301020J	Ancla para paso aéreo	menudo	50 unidades	10 unidades	normal	✏️ Editar
+301021J	Anilla para paso aéreo	menudo	100 unidades	20 unidades	normal	✏️ Editar
+301022J	Brida reutilizable 300x4.8mm	menudo	80 unidades	15 unidades	normal	✏️ Editar
+301023J	Brida reutilizable 370x7.6mm	menudo	60 unidades	12 unidades	normal	✏️ Editar
+301024J	Cable de acero plastificado	menudo	500 metros	50 metros	normal	✏️ Editar
+301025J	Conjunto retención KP 11mm	menudo	40 unidades	8 unidades	normal	✏️ Editar
+301026J	Conjunto retención F.O. 12mm	menudo	35 unidades	7 unidades	normal	✏️ Editar
+301027J	Conjunto retención KP 18mm	menudo	30 unidades	6 unidades	normal	✏️ Editar
+301028J	Cuerda negra 200m	menudo	20 unidades	4 unidades	normal	✏️ Editar
+301029J	Cuerda negra 1300m	menudo	5 unidades	1 unidades	normal	✏️ Editar
+301030J	Grapa de pared 00	menudo	100 unidades	20 unidades	normal	✏️ Editar
+301031J	Grapa de pared 0	menudo	100 unidades	20 unidades	normal	✏️ Editar
+301032J	Monotubo 25x2	menudo	1000 metros	100 metros	normal	✏️ Editar
+301033J	Monotubo 32x2.4	menudo	800 metros	80 metros	normal	✏️ Editar
+301034J	Monotubo 40x2.4	menudo	600 metros	60 metros	normal	✏️ Editar
+301035J	Obturador inflable 25mm	menudo	40 unidades	8 unidades	normal	✏️ Editar
+301036J	Obturador inflable 32mm	menudo	35 unidades	7 unidades	normal	✏️ Editar
+301037J	Obturador inflable 40mm	menudo	30 unidades	6 unidades	normal	✏️ Editar
+301038J	Obturador inflable 63mm	menudo	25 unidades	5 unidades	normal	✏️ Editar
+301039J	Obturador inflable 110mm	menudo	20 unidades	4 unidades	normal	✏️ Editar
+301040J	Tapa de fundición JC	menudo	15 unidades	3 unidades	normal	✏️ Editar
+301041J	Tapa de fundición HSK	menudo	15 unidades	3 unidades	normal	✏️ Editar
+301042J	Tapa de fundición JM	menudo	15 unidades	3 unidades	normal	✏️ Editar
+301043J	Tapa de fundición JG Orange	menudo	12 unidades	2 unidades	normal	✏️ Editar
+301044J	Tapón levá	menudo	60 unidades	12 unidades	normal	✏️ Editar
+301045J	Tapón multipolar	menudo	50 unidades	10 unidades	normal	✏️ Editar
+301046J	Tubo corrugado 63mm	menudo	400 metros	40 metros	normal	✏️ Editar
+301047J	Tubo corrugado 110mm	menudo	300 metros	30 metros	normal	✏️ Editar
+301048J	Tubo PG16 con acero	menudo	200 metros	20 metros	normal	✏️ Editar
+301049J	Tubo PG16 sin acero	menudo	250 metros	25 metros	normal	✏️ Editar
+301050J	Tubo PG21 con acero	menudo	150 metros	15 metros	normal	✏️ Editar
+301051J	Tubo PG21 sin acero	menudo	200 metros	20 metros	normal	✏️ Editar

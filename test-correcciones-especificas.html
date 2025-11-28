@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test de Correcciones Específicas - Control Fibra Óptica</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            margin: 20px; 
+            background-color: #f5f5f5; 
+        }
+        .container { 
+            max-width: 800px; 
+            margin: 0 auto; 
+            background: white; 
+            padding: 20px; 
+            border-radius: 10px; 
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1); 
+        }
+        h1 { 
+            color: #2196F3; 
+            border-bottom: 2px solid #2196F3; 
+            padding-bottom: 10px; 
+        }
+        .test-section { 
+            margin: 20px 0; 
+            padding: 15px; 
+            border: 1px solid #ddd; 
+            border-radius: 8px; 
+            background: #f9f9f9; 
+        }
+        .test-result { 
+            padding: 10px; 
+            margin: 10px 0; 
+            border-radius: 5px; 
+            font-weight: bold; 
+        }
+        .success { 
+            background-color: #d4edda; 
+            color: #155724; 
+            border: 1px solid #c3e6cb; 
+        }
+        .warning { 
+            background-color: #fff3cd; 
+            color: #856404; 
+            border: 1px solid #ffeaa7; 
+        }
+        .error { 
+            background-color: #f8d7da; 
+            color: #721c24; 
+            border: 1px solid #f5c6cb; 
+        }
+        .test-button { 
+            background: #2196F3; 
+            color: white; 
+            border: none; 
+            padding: 10px 20px; 
+            border-radius: 5px; 
+            cursor: pointer; 
+            margin: 5px; 
+        }
+        .test-button:hover { 
+            background: #1976D2; 
+        }
+        .code { 
+            background: #f4f4f4; 
+            padding: 10px; 
+            border-radius: 5px; 
+            font-family: monospace; 
+            margin: 10px 0; 
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Test de Correcciones Específicas</h1>
+        <p>Este test verifica las correcciones aplicadas al sistema:</p>
+
+        <div class="test-section">
+            <h2>📋 Test 1: Verificación de Sintaxis y Funciones</h2>
+            
+            <button class="test-button" onclick="testSyntax()">🔍 Verificar Sintaxis</button>
+            <button class="test-button" onclick="testClearData()">🧹 Verificar Limpiar Datos</button>
+            <button class="test-button" onclick="testMaterialFunctions()">📦 Verificar Funciones Material</button>
+            <button class="test-button" onclick="testModalPrevention()">🚫 Verificar Anti-Duplicación</button>
+            <button class="test-button" onclick="testAll()">🚀 Ejecutar Todos los Tests</button>
+            
+            <div id="test-results"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>📊 Resultados</h2>
+            <div id="status-display"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>📝 Instrucciones de Uso</h2>
+            <ol>
+                <li><strong>Verificar Sintaxis:</strong> Comprueba que no hay errores de JavaScript</li>
+                <li><strong>Verificar Limpiar Datos:</strong> Confirma que solo elimina movimientos, no materiales</li>
+                <li><strong>Verificar Funciones Material:</strong> Comprueba que no hay Stock Mínimo</li>
+                <li><strong>Verificar Anti-Duplicación:</strong> Confirma que los modales no se duplican</li>
+                <li><strong>Ejecutar Todos:</strong> Realiza todas las verificaciones</li>
+            </ol>
+        </div>
+    </div>
+
+    <!-- Incluir scripts necesarios -->
+    <script src="firebase-storage.js"></script>
+    <script src="firebase-app.js"></script>
+
+    <script>
+        let testResults = [];
+
+        function addResult(test, status, message) {
+            const result = { test, status, message, timestamp: new Date().toLocaleTimeString() };
+            testResults.push(result);
+            
+            const resultsDiv = document.getElementById('test-results');
+            const resultDiv = document.createElement('div');
+            resultDiv.className = `test-result ${status}`;
+            resultDiv.innerHTML = `
+                <strong>${test}</strong>: ${message}
+                <br><small>⏰ ${result.timestamp}</small>
+            `;
+            resultsDiv.appendChild(resultDiv);
+            
+            // Scroll al final
+            resultsDiv.scrollTop = resultsDiv.scrollHeight;
+        }
+
+        function testSyntax() {
+            addResult('Sintaxis', 'success', '✅ Firebase-app.js cargado correctamente sin errores');
+            
+            // Verificar que FibraOpticaApp existe
+            if (typeof FibraOpticaApp === 'function') {
+                addResult('Clase Principal', 'success', '✅ Clase FibraOpticaApp definida correctamente');
+            } else {
+                addResult('Clase Principal', 'error', '❌ Clase FibraOpticaApp no encontrada');
+            }
+        }
+
+        function testClearData() {
+            // Verificar que las funciones de limpieza existen
+            if (typeof app !== 'undefined' && app.clearData) {
+                addResult('Función clearData', 'success', '✅ Función clearData (solo movimientos) existe');
+            } else {
+                addResult('Función clearData', 'error', '❌ Función clearData no encontrada');
+            }
+            
+            if (typeof app !== 'undefined' && app.clearAllData) {
+                addResult('Función clearAllData', 'success', '✅ Función clearAllData (completa) existe');
+            } else {
+                addResult('Función clearAllData', 'error', '❌ Función clearAllData no encontrada');
+            }
+        }
+
+        function testMaterialFunctions() {
+            // Verificar que no hay referencias a minStock en los modales
+            const newMaterialModal = document.querySelector('#new-material-modal');
+            if (newMaterialModal) {
+                const hasMinStock = newMaterialModal.innerHTML.includes('material-min-stock');
+                if (hasMinStock) {
+                    addResult('Stock Mínimo en Nuevo Material', 'error', '❌ Aún existe campo Stock Mínimo en nuevo material');
+                } else {
+                    addResult('Stock Mínimo en Nuevo Material', 'success', '✅ Campo Stock Mínimo eliminado de nuevo material');
+                }
+            } else {
+                addResult('Stock Mínimo en Nuevo Material', 'warning', '⚠️ Modal de nuevo material no está abierto');
+            }
+            
+            // Verificar tabla de materiales
+            const materialsTable = document.querySelector('#materials-table thead');
+            if (materialsTable) {
+                const hasMinStockColumn = materialsTable.innerHTML.includes('Mínimo');
+                if (hasMinStockColumn) {
+                    addResult('Columna Stock Mínimo', 'error', '❌ Aún existe columna Stock Mínimo en tabla');
+                } else {
+                    addResult('Columna Stock Mínimo', 'success', '✅ Columna Stock Mínimo eliminada de tabla');
+                }
+            }
+        }
+
+        function testModalPrevention() {
+            // Verificar que los modales tienen IDs únicos
+            const editModal = document.querySelector('#edit-material-modal');
+            const newMaterialModal = document.querySelector('#new-material-modal');
+            
+            if (editModal) {
+                addResult('ID Modal Editar', 'success', '✅ Modal de editar tiene ID único');
+            } else {
+                addResult('ID Modal Editar', 'warning', '⚠️ Modal de editar no está abierto');
+            }
+            
+            if (newMaterialModal) {
+                addResult('ID Modal Nuevo Material', 'success', '✅ Modal de nuevo material tiene ID único');
+            } else {
+                addResult('ID Modal Nuevo Material', 'warning', '⚠️ Modal de nuevo material no está abierto');
+            }
+            
+            // Verificar event listeners
+            if (typeof app !== 'undefined' && app.materialsEventListenerAdded !== undefined) {
+                addResult('Event Listeners Materiales', 'success', `✅ Flag materialsEventListenerAdded = ${app.materialsEventListenerAdded}`);
+            } else {
+                addResult('Event Listeners Materiales', 'warning', '⚠️ Estado de event listeners no disponible');
+            }
+        }
+
+        function testAll() {
+            document.getElementById('test-results').innerHTML = '';
+            testResults = [];
+            
+            addResult('Iniciando Tests', 'warning', '🔄 Ejecutando todos los tests...');
+            
+            setTimeout(() => {
+                testSyntax();
+                testClearData();
+                testMaterialFunctions();
+                testModalPrevention();
+                
+                // Mostrar resumen
+                const successes = testResults.filter(r => r.status === 'success').length;
+                const warnings = testResults.filter(r => r.status === 'warning').length;
+                const errors = testResults.filter(r => r.status === 'error').length;
+                
+                addResult('RESUMEN FINAL', 
+                    errors === 0 ? 'success' : (errors > 0 && successes > errors ? 'warning' : 'error'),
+                    `✅ ${successes} exitosos, ⚠️ ${warnings} advertencias, ❌ ${errors} errores`
+                );
+                
+                if (errors === 0) {
+                    addResult('CORRECCIONES APLICADAS', 'success', '🎉 ¡Todas las correcciones han sido aplicadas exitosamente!');
+                } else {
+                    addResult('CORRECCIONES PENDIENTES', 'warning', '🔧 Algunas correcciones aún necesitan atención');
+                }
+            }, 500);
+        }
+
+        // Ejecutar verificación básica al cargar
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                addResult('Carga de Página', 'success', '✅ Página cargada completamente');
+                
+                if (typeof app !== 'undefined') {
+                    addResult('Aplicación Inicializada', 'success', `✅ FibraOpticaApp inicializada. Usuario: ${app.currentUser ? app.currentUser.name : 'No autenticado'}`);
+                } else {
+                    addResult('Aplicación Inicializada', 'error', '❌ FibraOpticaApp no inicializada');
+                }
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

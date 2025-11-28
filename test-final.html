@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Final - Event Listeners Corregidos</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+        .success { background-color: #d4edda; border-color: #c3e6cb; color: #155724; }
+        .error { background-color: #f8d7da; border-color: #f5c6cb; color: #721c24; }
+        .warning { background-color: #fff3cd; border-color: #ffeaa7; color: #856404; }
+        .info { background-color: #d1ecf1; border-color: #bee5eb; color: #0c5460; }
+        button { margin: 5px; padding: 10px 15px; cursor: pointer; }
+        .status { font-weight: bold; }
+    </style>
+</head>
+<body>
+    <h1>🎯 Test Final - Verificación Completa</h1>
+    
+    <div class="test-section info">
+        <h2>📋 Instrucciones</h2>
+        <p><strong>Si este test muestra ✅ en todos los apartados, abre <code>index.html</code> y prueba:</strong></p>
+        <ol>
+            <li>Iniciar sesión: <strong>BORJA CARRERAS MARTIN</strong> / <strong>admin123</strong></li>
+            <li>Crear material nuevo (stock inicial 20, mínimo 2) → <span class="warning">DEBE funcionar SIN duplicarse</span></li>
+            <li>Registrar movimiento → <span class="warning">NO debe aparecer duplicado</span></li>
+            <li>Gestión usuarios → <span class="warning">Eliminar usuario debe funcionar con UN SOLO clic</span></li>
+            <li>Cerrar sesión → <span class="warning">Debe mostrar modal y cerrar correctamente</span></li>
+        </ol>
+    </div>
+
+    <div class="test-section">
+        <h2>✅ Test 1: Aplicación Cargada Correctamente</h2>
+        <div id="app-status" class="status">Verificando...</div>
+    </div>
+
+    <div class="test-section">
+        <h2>✅ Test 2: Event Listeners de Materiales</h2>
+        <div id="materials-status" class="status">Verificando...</div>
+    </div>
+
+    <div class="test-section">
+        <h2>✅ Test 3: Event Listeners de Usuarios</h2>
+        <div id="users-status" class="status">Verificando...</div>
+    </div>
+
+    <div class="test-section">
+        <h2>✅ Test 4: Event Listeners de Logout</h2>
+        <div id="logout-status" class="status">Verificando...</div>
+    </div>
+
+    <div class="test-section">
+        <h2>✅ Test 5: Resumen Final</h2>
+        <div id="final-status" class="status">Verificando...</div>
+    </div>
+
+    <!-- Scripts en orden correcto -->
+    <script src="firebase-config.js"></script>
+    <script src="firebase-storage.js"></script>
+    <script src="firebase-app.js"></script>
+
+    <script>
+        function updateStatus(elementId, status, message) {
+            const element = document.getElementById(elementId);
+            element.className = `status ${status}`;
+            element.innerHTML = `${status === 'success' ? '✅' : status === 'error' ? '❌' : '⚠️'} ${message}`;
+        }
+
+        // Test aplicación
+        setTimeout(() => {
+            try {
+                if (typeof FibraOpticaApp === 'function' && typeof window.app !== 'undefined') {
+                    updateStatus('app-status', 'success', 'FibraOpticaApp cargada y instancia creada');
+                } else {
+                    updateStatus('app-status', 'error', 'Aplicación NO cargada correctamente');
+                }
+            } catch (error) {
+                updateStatus('app-status', 'error', `Error: ${error.message}`);
+            }
+        }, 1000);
+
+        // Test materials listeners
+        setTimeout(() => {
+            try {
+                if (typeof window.app !== 'undefined') {
+                    const hasMaterialsFlag = window.app.materialsEventListenerAdded;
+                    const materialsTable = document.getElementById('materials-table');
+                    
+                    if (hasMaterialsFlag && materialsTable) {
+                        updateStatus('materials-status', 'success', 'Event delegation para materiales configurado');
+                    } else if (!hasMaterialsFlag) {
+                        updateStatus('materials-status', 'warning', 'Flag materialsEventListenerAdded es false');
+                    } else {
+                        updateStatus('materials-status', 'warning', 'Tabla de materiales no encontrada');
+                    }
+                } else {
+                    updateStatus('materials-status', 'error', 'App no definida');
+                }
+            } catch (error) {
+                updateStatus('materials-status', 'error', `Error: ${error.message}`);
+            }
+        }, 1500);
+
+        // Test users listeners
+        setTimeout(() => {
+            try {
+                if (typeof window.app !== 'undefined') {
+                    const hasUsersFlag = window.app.usersEventListenerAdded;
+                    const usersTable = document.getElementById('users-table');
+                    
+                    if (hasUsersFlag && usersTable) {
+                        updateStatus('users-status', 'success', 'Event delegation para usuarios configurado');
+                    } else if (!hasUsersFlag) {
+                        updateStatus('users-status', 'warning', 'Flag usersEventListenerAdded es false (normal si no eres admin)');
+                    } else {
+                        updateStatus('users-status', 'warning', 'Tabla de usuarios no encontrada (normal si no estás logueado)');
+                    }
+                } else {
+                    updateStatus('users-status', 'error', 'App no definida');
+                }
+            } catch (error) {
+                updateStatus('users-status', 'error', `Error: ${error.message}`);
+            }
+        }, 2000);
+
+        // Test logout listeners
+        setTimeout(() => {
+            try {
+                const logoutBtn = document.getElementById('logout-btn');
+                const sidebarLogoutBtn = document.getElementById('sidebar-logout-btn');
+                
+                if (logoutBtn && sidebarLogoutBtn) {
+                    updateStatus('logout-status', 'success', 'Botones de logout encontrados en DOM');
+                } else if (!logoutBtn) {
+                    updateStatus('logout-status', 'warning', 'Botón logout principal no encontrado');
+                } else {
+                    updateStatus('logout-status', 'warning', 'Botón logout sidebar no encontrado');
+                }
+            } catch (error) {
+                updateStatus('logout-status', 'error', `Error: ${error.message}`);
+            }
+        }, 2500);
+
+        // Resumen final
+        setTimeout(() => {
+            try {
+                let allGood = true;
+                const issues = [];
+                
+                if (typeof window.app === 'undefined') {
+                    allGood = false;
+                    issues.push('Aplicación no cargada');
+                }
+                
+                if (typeof window.app !== 'undefined') {
+                    // Solo reportar problemas si la aplicación está cargada
+                    if (!window.app.materialsEventListenerAdded && document.getElementById('materials-table')) {
+                        issues.push('Materials event delegation no configurado');
+                    }
+                    if (!window.app.usersEventListenerAdded && document.getElementById('users-table') && window.app.isAdmin) {
+                        issues.push('Users event delegation no configurado');
+                    }
+                }
+                
+                const logoutBtn = document.getElementById('logout-btn');
+                if (!logoutBtn) {
+                    issues.push('Botón logout no encontrado');
+                }
+                
+                if (allGood && issues.length === 0) {
+                    updateStatus('final-status', 'success', '🎉 TODOS LOS TESTS PASARON - La aplicación está lista para usar');
+                } else {
+                    updateStatus('final-status', 'warning', `⚠️ ${issues.length} problema(s) detectado(s): ${issues.join(', ')}`);
+                }
+            } catch (error) {
+                updateStatus('final-status', 'error', `Error en resumen: ${error.message}`);
+            }
+        }, 3000);
+    </script>
+</body>
+</html>

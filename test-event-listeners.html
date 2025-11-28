@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Event Listeners</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+        .success { background-color: #d4edda; border-color: #c3e6cb; }
+        .error { background-color: #f8d7da; border-color: #f5c6cb; }
+        .warning { background-color: #fff3cd; border-color: #ffeaa7; }
+        button { margin: 5px; padding: 8px 15px; }
+        .log { background: #f8f9fa; padding: 10px; border-radius: 3px; font-family: monospace; font-size: 12px; max-height: 200px; overflow-y: auto; }
+    </style>
+</head>
+<body>
+    <h1>🧪 Test Event Listeners - Detección de Duplicados</h1>
+    
+    <div class="test-section">
+        <h2>✅ Test 1: Verificación de Flags de Control</h2>
+        <div id="flags-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>✅ Test 2: Verificación de Event Listeners</h2>
+        <div id="listeners-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>✅ Test 3: Logs de Eventos</h2>
+        <p>Realiza las siguientes acciones para verificar:</p>
+        <button onclick="testLogout()">Test Logout</button>
+        <button onclick="testMaterials()">Test Materials</button>
+        <button onclick="testUsers()">Test Users</button>
+        <div id="event-log" class="log"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>🚨 Diagnóstico de Problemas</h2>
+        <div id="diagnosis"></div>
+    </div>
+
+    <!-- Scripts en orden correcto -->
+    <script src="firebase-config.js"></script>
+    <script src="firebase-storage.js"></script>
+    <script src="firebase-app.js"></script>
+
+    <script>
+        let eventCount = {};
+        
+        function addLog(message) {
+            const log = document.getElementById('event-log');
+            const timestamp = new Date().toLocaleTimeString();
+            log.innerHTML += `[${timestamp}] ${message}<br>`;
+            log.scrollTop = log.scrollHeight;
+        }
+        
+        function testLogout() {
+            addLog('🧪 Testing logout functionality...');
+            try {
+                if (window.app && window.app.logout) {
+                    addLog('✅ logout() method exists');
+                    window.app.logout();
+                    addLog('✅ logout() called');
+                } else {
+                    addLog('❌ logout() method not found');
+                }
+            } catch (error) {
+                addLog('❌ Error calling logout: ' + error.message);
+            }
+        }
+        
+        function testMaterials() {
+            addLog('🧪 Testing materials event delegation...');
+            try {
+                const materialsTable = document.getElementById('materials-table');
+                if (materialsTable) {
+                    const listeners = getEventListeners(materialsTable);
+                    addLog(`Materials table has ${listeners.length} event listeners`);
+                    
+                    listeners.forEach((listener, index) => {
+                        addLog(`Listener ${index + 1}: ${listener.type}`);
+                    });
+                } else {
+                    addLog('❌ Materials table not found');
+                }
+            } catch (error) {
+                addLog('❌ Error checking materials: ' + error.message);
+            }
+        }
+        
+        function testUsers() {
+            addLog('🧪 Testing users event delegation...');
+            try {
+                const usersTable = document.getElementById('users-table');
+                if (usersTable) {
+                    const listeners = getEventListeners(usersTable);
+                    addLog(`Users table has ${listeners.length} event listeners`);
+                    
+                    listeners.forEach((listener, index) => {
+                        addLog(`Listener ${index + 1}: ${listener.type}`);
+                    });
+                } else {
+                    addLog('❌ Users table not found (maybe not logged in as admin)');
+                }
+            } catch (error) {
+                addLog('❌ Error checking users: ' + error.message);
+            }
+        }
+        
+        // Verificar flags de control
+        setTimeout(() => {
+            const flags = document.getElementById('flags-result');
+            let html = '<div class="success">✅ Event flags status:<br>';
+            
+            if (typeof window.app !== 'undefined') {
+                html += `• eventListenersAdded: ${window.app.eventListenersAdded}<br>`;
+                html += `• materialsEventListenerAdded: ${window.app.materialsEventListenerAdded}<br>`;
+                html += `• usersEventListenerAdded: ${window.app.usersEventListenerAdded}<br>`;
+                
+                if (!window.app.eventListenersAdded) {
+                    html += '<br><div class="warning">⚠️ eventListenersAdded is false - listeners not configured</div>';
+                }
+                if (!window.app.materialsEventListenerAdded) {
+                    html += '<br><div class="warning">⚠️ materialsEventListenerAdded is false - materials listeners not configured</div>';
+                }
+                if (!window.app.usersEventListenerAdded) {
+                    html += '<br><div class="warning">⚠️ usersEventListenerAdded is false - users listeners not configured</div>';
+                }
+            } else {
+                html += '<div class="error">❌ window.app not defined</div>';
+            }
+            
+            html += '</div>';
+            flags.innerHTML = html;
+        }, 1000);
+        
+        // Verificar event listeners
+        setTimeout(() => {
+            const listeners = document.getElementById('listeners-result');
+            let html = '<div class="success">✅ Global event listeners:<br>';
+            
+            try {
+                const materialsTable = document.getElementById('materials-table');
+                const usersTable = document.getElementById('users-table');
+                const logoutBtn = document.getElementById('logout-btn');
+                
+                if (materialsTable) {
+                    const materialListeners = getEventListeners(materialsTable) || [];
+                    html += `• Materials table: ${materialListeners.length} listeners<br>`;
+                }
+                
+                if (usersTable) {
+                    const userListeners = getEventListeners(usersTable) || [];
+                    html += `• Users table: ${userListeners.length} listeners<br>`;
+                }
+                
+                if (logoutBtn) {
+                    const logoutListeners = getEventListeners(logoutBtn) || [];
+                    html += `• Logout button: ${logoutListeners.length} listeners<br>`;
+                }
+                
+            } catch (error) {
+                html += `❌ Error checking listeners: ${error.message}<br>`;
+            }
+            
+            html += '</div>';
+            listeners.innerHTML = html;
+        }, 1500);
+        
+        // Diagnóstico
+        setTimeout(() => {
+            const diagnosis = document.getElementById('diagnosis');
+            let html = '<div class="warning">🔍 Potential Issues:<br>';
+            
+            if (typeof window.app !== 'undefined') {
+                if (!window.app.eventListenersAdded) {
+                    html += '• Event listeners not configured - may cause multiple listeners<br>';
+                }
+                if (!window.app.materialsEventListenerAdded) {
+                    html += '• Materials event delegation not set up<br>';
+                }
+                if (!window.app.usersEventListenerAdded) {
+                    html += '• Users event delegation not set up<br>';
+                }
+                if (window.app.eventListenersAdded && !window.app.materialsEventListenerAdded && !window.app.usersEventListenerAdded) {
+                    html += '<br><div class="error">❌ Flag inconsistency detected!</div>';
+                }
+            }
+            
+            html += '</div>';
+            diagnosis.innerHTML = html;
+        }, 2000);
+    </script>
+</body>
+</html>
